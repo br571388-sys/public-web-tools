@@ -5,17 +5,192 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repo Manager - Loading</title>
     <style>
-        body { background-color: #0f172a; color: #38bdf8; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .spinner { width: 45px; height: 45px; border: 4px solid #1e293b; border-top: 4px solid #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
-        #status-text { text-align: center; font-size: 16px; font-weight: 500; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #38bdf8;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .loader-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 35px;
+        }
+        
+        /* ===== ATOM CONTAINER ===== */
+        .atom {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            perspective: 800px;
+        }
+        
+        /* Ambient background glow */
+        .atom::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 220px; height: 220px;
+            margin: -110px 0 0 -110px;
+            background: radial-gradient(circle, rgba(56,189,248,0.18) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: glow 2.4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes glow {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        
+        /* ===== PULSING NUCLEUS ===== */
+        .nucleus {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 20px; height: 20px;
+            margin: -10px 0 0 -10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #e0f2fe, #38bdf8 60%, #0284c7);
+            box-shadow:
+                0 0 15px #38bdf8,
+                0 0 35px rgba(56,189,248,0.6),
+                0 0 60px rgba(56,189,248,0.3);
+            animation: pulse 1.6s ease-in-out infinite;
+            z-index: 10;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 15px #38bdf8, 0 0 35px rgba(56,189,248,0.6), 0 0 60px rgba(56,189,248,0.3);
+            }
+            50% {
+                transform: scale(1.3);
+                box-shadow: 0 0 25px #38bdf8, 0 0 55px rgba(56,189,248,0.9), 0 0 80px rgba(56,189,248,0.4);
+            }
+        }
+        
+        /* ===== ORBIT RINGS ===== */
+        .orbit {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            transform-style: preserve-3d;
+        }
+        
+        /* Electron dot on each orbit */
+        .orbit::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: -5px;
+            width: 10px; height: 10px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: #7dd3fc;
+            box-shadow: 0 0 10px #38bdf8, 0 0 20px #38bdf8;
+        }
+        
+        /* Orbit 1 - Cyan electron */
+        .orbit-1 {
+            animation: spin-1 2.5s linear infinite;
+        }
+        
+        /* Orbit 2 - Purple electron */
+        .orbit-2 {
+            animation: spin-2 3.5s linear infinite;
+        }
+        .orbit-2::after {
+            background: #a78bfa;
+            box-shadow: 0 0 10px #a78bfa, 0 0 20px #a78bfa;
+        }
+        .orbit-2 {
+            border-color: rgba(167, 139, 250, 0.2);
+        }
+        
+        /* Orbit 3 - Pink electron */
+        .orbit-3 {
+            animation: spin-3 3s linear infinite;
+        }
+        .orbit-3::after {
+            background: #f472b6;
+            box-shadow: 0 0 10px #f472b6, 0 0 20px #f472b6;
+        }
+        .orbit-3 {
+            border-color: rgba(244, 114, 182, 0.2);
+        }
+        
+        /* 3D tilt + spin keyframes */
+        @keyframes spin-1 {
+            from { transform: rotateX(70deg) rotateZ(0deg); }
+            to   { transform: rotateX(70deg) rotateZ(360deg); }
+        }
+        @keyframes spin-2 {
+            from { transform: rotateX(70deg) rotateY(60deg) rotateZ(0deg); }
+            to   { transform: rotateX(70deg) rotateY(60deg) rotateZ(360deg); }
+        }
+        @keyframes spin-3 {
+            from { transform: rotateX(70deg) rotateY(-60deg) rotateZ(0deg); }
+            to   { transform: rotateX(70deg) rotateY(-60deg) rotateZ(360deg); }
+        }
+        
+        /* ===== STATUS TEXT ===== */
+        #status-text {
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #38bdf8;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+            text-align: center;
+            min-height: 20px;
+        }
+        
+        /* Animated dots after status */
+        #status-text::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20%  { content: ''; }
+            40%      { content: '.'; }
+            60%      { content: '..'; }
+            80%, 100%{ content: '...'; }
+        }
+        
+        /* Shake on error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%      { transform: translateX(-6px); }
+            75%      { transform: translateX(6px); }
+        }
+        
+        @media (max-width: 480px) {
+            .atom { width: 110px; height: 110px; }
+            #status-text { font-size: 13px; letter-spacing: 1.5px; }
+        }
     </style>
 </head>
 <body>
     
-    <div>
-        <div class="spinner" id="spinner"></div>
-        <div id="status-text">Verifying secure connection...</div>
+    <div class="loader-wrap">
+        <div class="atom">
+            <div class="orbit orbit-1"></div>
+            <div class="orbit orbit-2"></div>
+            <div class="orbit orbit-3"></div>
+            <div class="nucleus"></div>
+        </div>
+        <div id="status-text">Verifying secure connection</div>
     </div>
 
     <script>
@@ -35,9 +210,13 @@
             document.close();
         })
         .catch(err => {
-            document.getElementById('spinner').style.display = 'none';
-            document.getElementById('status-text').style.color = '#ef4444';
-            document.getElementById('status-text').innerHTML = `⚠️ Error: ${err.message}`;
+            document.querySelector('.atom').style.display = 'none';
+            const statusEl = document.getElementById('status-text');
+            statusEl.style.color = '#ef4444';
+            statusEl.style.textShadow = '0 0 12px rgba(239, 68, 68, 0.6)';
+            statusEl.style.animation = 'shake 0.4s ease-in-out';
+            statusEl.style.textTransform = 'none';
+            statusEl.innerHTML = `⚠️ Error: ${err.message}`;
         });
     </script>
 </body>
