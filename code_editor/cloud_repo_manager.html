@@ -2,25 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Repo Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repo Manager - Loading</title>
+    <style>
+        body { background-color: #0f172a; color: #38bdf8; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .spinner { width: 45px; height: 45px; border: 4px solid #1e293b; border-top: 4px solid #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
+        #status-text { text-align: center; font-size: 16px; font-weight: 500; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <!-- Shuru mein bas loading dikhega -->
-    <div id="content">Loading website...</div>
+    
+    <div>
+        <div class="spinner" id="spinner"></div>
+        <div id="status-text">Verifying secure connection...</div>
+    </div>
 
     <script>
-        // Apna Cloudflare Worker wala link yahan daalo
-        const workerUrl = 'https://tumhara-app.username.workers.dev';
-
-        fetch(workerUrl)
-            .then(response => response.text())
-            .then(htmlData => {
-                // Cloudflare se HTML aate hi page par daal do
-                document.getElementById('content').innerHTML = htmlData;
-            })
-            .catch(err => {
-                document.getElementById('content').innerHTML = "Error loading site.";
-            });
+        const WORKER_URL = 'https://repo-manager-web.fz-anime.workers.dev';
+        
+        fetch(WORKER_URL)
+        .then(async response => {
+            if (!response.ok) {
+                const errorMsg = await response.text();
+                throw new Error(errorMsg || "Access Denied by Server");
+            }
+            return response.text();
+        })
+        .then(htmlData => {
+            document.open();
+            document.write(htmlData);
+            document.close();
+        })
+        .catch(err => {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('status-text').style.color = '#ef4444';
+            document.getElementById('status-text').innerHTML = `⚠️ Error: ${err.message}`;
+        });
     </script>
 </body>
 </html>
