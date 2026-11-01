@@ -99,7 +99,7 @@
             <button onclick="doShare()" class="tbtn tbtn-sm bg-[#8250df] text-white">📤 Share</button>
         </div>
         <div id="saveStatusBar" class="text-[11px] text-gray-500 font-mono"></div>
-        <p class="hint">💡 Filename bina extension likho, extension dropdown se choose karo. Ya dropdown mein <b>(custom)</b> chuno aur pura naam type karo.</p>
+        <p class="hint">💡 Type the filename without an extension, then choose the extension from the dropdown. Or select <b>(custom)</b> in the dropdown and type the full name.</p>
     </div>
 
     <!-- FIND & REPLACE PANEL -->
@@ -167,7 +167,7 @@
             <div id="bulkLog" class="bulk-log" style="border-top-left-radius:0;border-top-right-radius:0;"></div>
         </div>
 
-        <p class="hint">💡 <b style="color:#a371f7">∆=∆N</b> = FIND aur REPLACE ko alag karta hai. <b style="color:#a371f7">∆separation∆</b> = ek pair ko next pair se alag karta hai.</p>
+        <p class="hint">💡 <b style="color:#a371f7">∆=∆N</b> = separates FIND from REPLACE. <b style="color:#a371f7">∆separation∆</b> = separates one pair from the next.</p>
     </div>
 
     <!-- STATUS BAR -->
@@ -774,9 +774,9 @@
                         const rFL = replace.split('\n')[0].trim();
                         const nFL = nextFind.split('\n')[0].trim();
                         if (rFL && nFL && rFL === nFL) {
-                            addBulkLog(`  🔀 AMBIGUITY: is pair ka REPLACE next pair ke FIND se match karta hai!`, 'ambig');
-                            addBulkLog(`      → Next pair (#${i + 2}) ka find: "${nFL.slice(0, 50)}"`, 'detail');
-                            addBulkLog(`      → Is pair ka replace bhi waisa hi hai. Next pair isko bhi match kar sakta hai.`, 'detail');
+                            addBulkLog(`  🔀 AMBIGUITY: This pair's REPLACE matches the next pair's FIND!`, 'ambig');
+                            addBulkLog(`      → Next pair (#${i + 2}) find: "${nFL.slice(0, 50)}"`, 'detail');
+                            addBulkLog(`      → This pair's replace is identical. Next pair may match it too.`, 'detail');
                             ambiguous++;
                             ambiguousList.push({ i: i + 1, nextI: i + 2, firstLine, nextFirstLine: nFL });
                         }
@@ -808,8 +808,8 @@
                         editor.session.setValue(savedDoc, -1);
                     } catch (e) {}
                     if (wasInOriginal) {
-                        addBulkLog(`  ⚠ NO MATCH — original mein tha, but previous replacement ne modify kar diya!`, 'warn');
-                        addBulkLog(`      → Ye pair pehle chalna chahiye tha`, 'detail');
+                        addBulkLog(`  ⚠ NO MATCH — existed in original, but a previous replacement modified it!`, 'warn');
+                        addBulkLog(`      → This pair should have run earlier`, 'detail');
                         skippedList.push({ i: i + 1, reason: 'CONFLICT: modified by earlier pair', firstLine });
                     } else {
                         addBulkLog(`  ⚠ NO MATCH — 0 occurrences found, skipped`, 'warn');
@@ -855,10 +855,10 @@
                 addBulkLog(``, 'sep');
                 addBulkLog(`🔀 AMBIGUITY DETAILS:`, 'warn');
                 ambiguousList.forEach(a => {
-                    addBulkLog(`  Pair #${a.i} ka REPLACE = Pair #${a.nextI} ka FIND`, 'warn');
+                    addBulkLog(`  Pair #${a.i} REPLACE = Pair #${a.nextI} FIND`, 'warn');
                     addBulkLog(`    Pair #${a.i} find: "${a.firstLine.slice(0, 50)}"`, 'detail');
                     addBulkLog(`    Pair #${a.nextI} find: "${a.nextFirstLine.slice(0, 50)}"`, 'detail');
-                    addBulkLog(`    ⚠ Result unpredictable — reorder karo ya merge karo.`, 'detail');
+                    addBulkLog(`    ⚠ Result unpredictable — reorder or merge these.`, 'detail');
                 });
             }
 
@@ -882,13 +882,13 @@
 
             addBulkLog(``, 'sep');
             if (success === total) {
-                addBulkLog(`🎉 ALL SUCCESSFUL — sab ${total} pairs apply hue!`, 'summary');
+                addBulkLog(`🎉 ALL SUCCESSFUL — all ${total} pairs applied!`, 'summary');
             } else if (success > 0) {
                 addBulkLog(`⚡ PARTIAL SUCCESS — ${success}/${total} pairs applied, ${skipped} skipped`, 'summary');
             } else {
-                addBulkLog(`❌ FAILED — ek bhi pair apply nahi hua`, 'summary');
+                addBulkLog(`❌ FAILED — not a single pair was applied`, 'summary');
             }
-            if (ambiguous > 0) addBulkLog(`⚠ ${ambiguous} ambiguous pair(s) — inhe manual verify karo!`, 'summary');
+            if (ambiguous > 0) addBulkLog(`⚠ ${ambiguous} ambiguous pair(s) — verify these manually!`, 'summary');
 
             setBulkStatus(`${success}/${total} applied · ${totalReplaced} replacements · ${skipped} skipped · ${ms}ms`, success > 0 ? (skipped || ambiguous ? 'warn' : 'good') : 'bad');
             if (success > 0) localStorage.setItem(BULK_KEY, text);
@@ -922,28 +922,28 @@
 
         // ============ TEMPLATE + FORMAT GUIDE ============
         const TEMPLATE_TXT =
-`FIND BLOCK #1 — YAHAN PEHLA PURANA CODE PASTE KARO
+`FIND BLOCK #1 — PASTE THE FIRST OLD CODE HERE
 (line 2 of find 1)
 (line 3 of find 1)
 ∆=∆1
-REPLACE BLOCK #1 — YAHAN NAYA CODE PASTE KARO
+REPLACE BLOCK #1 — PASTE THE NEW CODE HERE
 (line 2 of replace 1)
 (line 3 of replace 1)
 
 ∆separation∆
 
-FIND BLOCK #2 — YAHAN DUSRA PURANA CODE PASTE KARO
+FIND BLOCK #2 — PASTE THE SECOND OLD CODE HERE
 (line 2 of find 2)
 ∆=∆2
-REPLACE BLOCK #2 — YAHAN DUSRA NAYA CODE PASTE KARO
+REPLACE BLOCK #2 — PASTE THE SECOND NEW CODE HERE
 (line 2 of replace 2)
 (line 3 of replace 2)
 
 ∆separation∆
 
-FIND BLOCK #3 — YAHAN TEESRA PURANA CODE PASTE KARO
+FIND BLOCK #3 — PASTE THE THIRD OLD CODE HERE
 ∆=∆3
-REPLACE BLOCK #3 — YAHAN TEESRA NAYA CODE PASTE KARO
+REPLACE BLOCK #3 — PASTE THE THIRD NEW CODE HERE
 (line 2 of replace 3)
 `;
 
@@ -953,21 +953,21 @@ REPLACE BLOCK #3 — YAHAN TEESRA NAYA CODE PASTE KARO
 ══════════════════════════════════════════
 
 PURPOSE:
-  Ek single .txt file mein multiple find/replace
-  pairs likh sakte ho. Editor ek click mein
-  saare apply kar dega.
+  You can write multiple find/replace pairs
+  in a single .txt file. The editor applies
+  them all in one click.
 
 ══════════════════════════════════════════
   1. TWO SEPARATORS — VERY IMPORTANT
 ══════════════════════════════════════════
 
   Marker #1:  ∆=∆   (or ∆=∆1, ∆=∆2 ...)
-      → FIND ko REPLACE se alag karta hai
-      → Ye EK PAIR ke ANDAR hota hai
+      → Separates FIND from REPLACE
+      → This is INSIDE one pair
 
   Marker #2:  ∆separation∆
-      → EK PAIR ko NEXT PAIR se alag karta hai
-      → Ye PAIRS ke BEECH hota hai
+      → Separates ONE PAIR from the NEXT PAIR
+      → This goes BETWEEN pairs
 
 ══════════════════════════════════════════
   2. BASIC FORMAT
@@ -993,27 +993,27 @@ PURPOSE:
   3. SAVE / DOWNLOAD FEATURE
 ══════════════════════════════════════════
 
-  💾 Save button header mein hai.
+  💾 Save button is in the header.
 
   Features:
-   • Custom filename (jaise repo-manager-2)
+   • Custom filename (e.g. repo-manager-2)
    • Extension dropdown (html, txt, md, js, css...)
-   • Custom extension option (pura naam type karo)
-   • Download → browser file save karega
-   • Copy → clipboard mein
+   • Custom extension option (type full name)
+   • Download → browser saves the file
+   • Copy → to clipboard
    • Share → Android share sheet
-   • Filename localStorage mein yaad rehta hai
+   • Filename is remembered in localStorage
 
 ══════════════════════════════════════════
   4. MATCHING RULES
 ══════════════════════════════════════════
 
   ✓ Smart mode (default ON):
-      - Saare spaces, tabs, newlines IGNORE
-      - Symbols/text EXACT match
+      - Ignores ALL spaces, tabs, newlines
+      - Symbols/text must match EXACTLY
 
   ✓ Auto-indent (default ON):
-      - Replacement target line ki indentation pe
+      - Replacement inherits the target line's indentation
 
   ✓ Case sensitive (default OFF)
   ✓ Quotes smart (default OFF)
@@ -1022,17 +1022,17 @@ PURPOSE:
   5. TIPS
 ══════════════════════════════════════════
 
-  1. Bahut bade code blocks chalte hain.
+  1. Very large code blocks work fine.
 
-  2. Agar koi pair nahi mila toh woh skip
-     ho jayega, baaki sab apply honge.
+  2. If a pair is not found, it will be
+     skipped; the rest will still apply.
 
-  3. Detailed log niche milega.
+  3. A detailed log appears below.
 
-  4. Log box mein "Copy Log" button hai.
+  4. There's a "Copy Log" button in the log box.
 
-  5. Backup ke liye pehle editor ka code
-     "💾 Save" se download karke rakh lo.
+  5. For backup, download the editor's code
+     first using "💾 Save".
 
 ══════════════════════════════════════════
   END OF GUIDE
@@ -1125,7 +1125,7 @@ PURPOSE:
 
         // ============ Clear ============
         function clearCode() {
-            if (confirm('Clear the editor? Cannot be undone.')) {
+            if (confirm('Clear the editor? This cannot be undone.')) {
                 editor.setValue('', -1);
                 localStorage.removeItem(CACHE_KEY);
             }
