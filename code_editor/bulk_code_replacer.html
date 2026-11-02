@@ -71,6 +71,9 @@
 
         .log-header { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; background:#0d1117; border:1px solid #30363d; border-top-left-radius:9px; border-top-right-radius:9px; gap:8px; }
         .dot-live { width:7px; height:7px; border-radius:50%; background:#3fb950; box-shadow:0 0 6px #3fb950; }
+
+        /* ---- Find panel scroll wrapper ---- */
+        #findPanel { max-height: 62vh; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -185,10 +188,67 @@
             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Recent</div>
             <div id="recentList" class="flex gap-1.5 overflow-x-auto scrollbar-hide"></div>
         </div>
+
+        <!-- ═══ NEW: LINE RANGE COPY + EDIT ACTIONS ═══ -->
+        <div class="border-t border-[#30363d] pt-2.5 mt-1 flex flex-col gap-2">
+
+            <!-- Line Range Copy -->
+            <div>
+                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                    Copy Line Range
+                </div>
+                <div class="flex gap-1.5 items-center flex-wrap">
+                    <input id="lineFrom" type="number" min="1" placeholder="From" class="w-16 bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] px-2 py-1.5 rounded-md text-xs font-mono focus:border-[#58a6ff] outline-none">
+                    <span class="text-[11px] text-gray-500">→</span>
+                    <input id="lineTo" type="number" min="1" placeholder="To" class="w-16 bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] px-2 py-1.5 rounded-md text-xs font-mono focus:border-[#58a6ff] outline-none">
+                    <button onclick="useCurrentSelLines()" class="mini-btn" title="Fill from current selection">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Sel
+                    </button>
+                    <button onclick="copyLineRange()" class="tbtn tbtn-sm bg-[#1f6feb] text-white">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copy Lines
+                    </button>
+                </div>
+                <div id="lineRangeInfo" class="text-[10px] text-gray-500 font-mono mt-1"></div>
+            </div>
+
+            <!-- Edit Actions -->
+            <div>
+                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    Edit Actions (on selection)
+                </div>
+                <div class="flex gap-1.5 flex-wrap">
+                    <button id="btnCopySel" onclick="doCopySel()" class="mini-btn" style="flex:1;justify-content:center;">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copy
+                    </button>
+                    <button id="btnCutSel" onclick="doCutSel()" class="mini-btn" style="flex:1;justify-content:center;">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                        Cut
+                    </button>
+                    <button id="btnPasteSel" onclick="doPasteSel()" class="mini-btn" style="flex:1;justify-content:center;">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                        Paste
+                    </button>
+                    <button id="btnUndoSel" onclick="doUndo()" class="mini-btn" style="flex:1;justify-content:center;">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
+                        Undo
+                    </button>
+                    <button id="btnRedoSel" onclick="doRedo()" class="mini-btn" style="flex:1;justify-content:center;">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 15-6.7L21 13"/></svg>
+                        Redo
+                    </button>
+                </div>
+                <div id="selActionsStatus" class="text-[10px] text-gray-500 font-mono mt-1"></div>
+            </div>
+        </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- BULK PANEL (REDESIGNED)                                       -->
+    <!-- BULK PANEL                                                    -->
     <!-- ============================================================ -->
     <div id="bulkPanel" class="find-panel flex-col p-3 bg-[#161b22] border-b border-[#30363d] gap-2.5 shadow-lg z-10 shrink-0" style="display:none">
 
@@ -1263,6 +1323,149 @@ PURPOSE:
             $('saveStatus').style.color = '#3fb950';
             toggleSave();
         }});
+
+        // ═══════════════════════════════════════════════
+        // LINE RANGE COPY + EDIT ACTIONS (NEW)
+        // ═══════════════════════════════════════════════
+        function setLineRangeInfo(msg, kind) {
+            const el = $('lineRangeInfo');
+            if (!el) return;
+            el.innerText = msg || '';
+            el.style.color = kind === 'good' ? '#3fb950' : kind === 'bad' ? '#f85149' : kind === 'warn' ? '#e3b341' : '#8b949e';
+        }
+        function setSelActionsStatus(msg, kind) {
+            const el = $('selActionsStatus');
+            if (!el) return;
+            el.innerText = msg || '';
+            el.style.color = kind === 'good' ? '#3fb950' : kind === 'bad' ? '#f85149' : kind === 'warn' ? '#e3b341' : '#8b949e';
+        }
+
+        function useCurrentSelLines() {
+            const sel = editor.getSelectionRange();
+            if (sel.isEmpty()) {
+                setLineRangeInfo('No selection — select text first', 'warn');
+                return;
+            }
+            const fromLine = sel.start.row + 1;
+            let toLine = sel.end.row + 1;
+            if (sel.end.column === 0 && sel.end.row > sel.start.row) toLine = sel.end.row;
+            $('lineFrom').value = fromLine;
+            $('lineTo').value = toLine;
+            setLineRangeInfo(`Selection: lines ${fromLine}–${toLine}`, 'info');
+        }
+
+        function copyLineRange() {
+            const total = editor.session.getLength();
+            const fromRaw = parseInt($('lineFrom').value, 10);
+            const toRaw = parseInt($('lineTo').value, 10);
+            if (!fromRaw || !toRaw) return setLineRangeInfo('Enter both line numbers', 'bad');
+            if (fromRaw < 1 || toRaw < 1) return setLineRangeInfo('Line numbers must be ≥ 1', 'bad');
+            if (fromRaw > toRaw) return setLineRangeInfo('From must be ≤ To', 'bad');
+            if (fromRaw > total) return setLineRangeInfo(`File has only ${total} lines`, 'bad');
+            const start = fromRaw;
+            const end = Math.min(total, toRaw);
+            const lines = editor.session.getLines(start - 1, end - 1);
+            const text = lines.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                const lc = end - start + 1;
+                setLineRangeInfo(`✓ Copied lines ${start}–${end} (${lc} line${lc === 1 ? '' : 's'}, ${text.length} chars)`, 'good');
+            }).catch(e => setLineRangeInfo('Copy failed: ' + e.message, 'bad'));
+        }
+
+        function doCopySel() {
+            const txt = editor.getSelectedText();
+            if (!txt) return setSelActionsStatus('Select text in editor first', 'warn');
+            navigator.clipboard.writeText(txt)
+                .then(() => setSelActionsStatus(`✓ Copied ${txt.length} chars`, 'good'))
+                .catch(() => setSelActionsStatus('Copy failed', 'bad'));
+        }
+
+        function doCutSel() {
+            const range = editor.getSelectionRange();
+            if (range.isEmpty()) return setSelActionsStatus('Select text in editor first', 'warn');
+            const txt = editor.session.getTextRange(range);
+            navigator.clipboard.writeText(txt).then(() => {
+                editor.session.remove(range);
+                setSelActionsStatus(`✂ Cut ${txt.length} chars`, 'good');
+            }).catch(() => setSelActionsStatus('Clipboard blocked — cut failed', 'bad'));
+        }
+
+        async function doPasteSel() {
+            try {
+                const txt = await navigator.clipboard.readText();
+                if (!txt) return setSelActionsStatus('Clipboard is empty', 'warn');
+                editor.session.replace(editor.getSelectionRange(), txt);
+                editor.focus();
+                setSelActionsStatus(`✓ Pasted ${txt.length} chars`, 'good');
+            } catch (e) {
+                openPasteFallback();
+            }
+        }
+
+        function openPasteFallback() {
+            const old = $('pasteFallbackModal');
+            if (old) old.remove();
+            const modal = document.createElement('div');
+            modal.id = 'pasteFallbackModal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(2px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;';
+            modal.innerHTML = `
+                <div style="background:#161b22;border:1px solid #30363d;border-radius:14px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.6);">
+                    <div style="padding:12px 16px;border-bottom:1px solid #30363d;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:700;color:#c9d1d9;font-size:13px;">Paste Text</span>
+                        <button id="pasteFallbackClose" style="color:#8b949e;padding:4px 8px;cursor:pointer;border:none;background:transparent;font-size:16px;">✕</button>
+                    </div>
+                    <div style="padding:14px 16px;">
+                        <p style="color:#8b949e;font-size:11px;margin:0 0 8px 0;">Browser ne clipboard read block kiya. Neeche long-press karke paste karo:</p>
+                        <textarea id="pasteFallbackText" rows="6" placeholder="Paste here..." style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#c9d1d9;resize:vertical;outline:none;"></textarea>
+                    </div>
+                    <div style="padding:12px 16px;border-top:1px solid #30363d;display:flex;gap:8px;">
+                        <button id="pasteFallbackCancel" class="tbtn tbtn-sm" style="flex:1;background:#21262d;border:1px solid #30363d;color:#c9d1d9;">Cancel</button>
+                        <button id="pasteFallbackOK" class="tbtn tbtn-sm" style="flex:1;background:#238636;color:#fff;">Insert</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+            const ta = $('pasteFallbackText');
+            setTimeout(() => ta.focus(), 100);
+            const close = () => modal.remove();
+            $('pasteFallbackClose').onclick = close;
+            $('pasteFallbackCancel').onclick = close;
+            $('pasteFallbackOK').onclick = () => {
+                const txt = ta.value;
+                if (txt) {
+                    editor.session.replace(editor.getSelectionRange(), txt);
+                    editor.focus();
+                    setSelActionsStatus(`✓ Inserted ${txt.length} chars`, 'good');
+                }
+                close();
+            };
+            modal.addEventListener('click', e => { if (e.target === modal) close(); });
+        }
+
+        function doUndo() {
+            if (!editor.session.getUndoManager().hasUndo()) return setSelActionsStatus('Nothing to undo', 'warn');
+            editor.undo();
+            setSelActionsStatus('↶ Undo', 'info');
+        }
+        function doRedo() {
+            if (!editor.session.getUndoManager().hasRedo()) return setSelActionsStatus('Nothing to redo', 'warn');
+            editor.redo();
+            setSelActionsStatus('↷ Redo', 'info');
+        }
+
+        function updateEditActionStates() {
+            const um = editor.session.getUndoManager();
+            const hasSel = !editor.getSelectionRange().isEmpty();
+            const setOp = (id, on) => { const b = $(id); if (b) b.style.opacity = on ? '1' : '0.45'; };
+            setOp('btnUndoSel', um.hasUndo());
+            setOp('btnRedoSel', um.hasRedo());
+            setOp('btnCopySel', hasSel);
+            setOp('btnCutSel', hasSel);
+        }
+
+        // Hook state updates
+        editor.selection.on('changeSelection', updateEditActionStates);
+        editor.session.on('change', updateEditActionStates);
+        updateEditActionStates();
 
         // ============ Init ============
         renderRecent();
