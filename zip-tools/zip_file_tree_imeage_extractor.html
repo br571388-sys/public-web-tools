@@ -20,7 +20,6 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    /* Custom Scrollbar for long trees */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -83,11 +82,14 @@
           <button id="fitToggleBtn" onclick="toggleZoomMode()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition">
             🔍 Mode: Actual Size (100% Sharp)
           </button>
+          <button id="downloadTxtBtn" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-semibold rounded-lg shadow-lg transition flex items-center gap-1.5">
+            ⬇ TXT File
+          </button>
           <button id="downloadPngBtn" class="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-xs md:text-sm font-semibold rounded-lg shadow-lg transition flex items-center gap-1.5">
-            ⬇ Download HD PNG
+            ⬇ HD PNG
           </button>
           <a id="downloadSvgBtn" download="folder-tree.svg" class="px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs md:text-sm font-semibold rounded-lg shadow transition flex items-center gap-1" title="Infinite Zoom Vector Image">
-            ⬇ SVG (Infinite Zoom)
+            ⬇ SVG
           </a>
         </div>
       </div>
@@ -112,6 +114,7 @@
     const previewImg = document.getElementById('previewImg');
     const downloadPngBtn = document.getElementById('downloadPngBtn');
     const downloadSvgBtn = document.getElementById('downloadSvgBtn');
+    const downloadTxtBtn = document.getElementById('downloadTxtBtn');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
     const statsBadge = document.getElementById('statsBadge');
     const resBadge = document.getElementById('resBadge');
@@ -243,7 +246,6 @@
       const paddingY = 36;
       const headerHeight = 48;
 
-      // Measure width accurately using temporary 2d context
       const tempCanvas = document.createElement('canvas');
       const tempCtx = tempCanvas.getContext('2d');
       tempCtx.font = `600 ${fontSize}px "JetBrains Mono", "Courier New", monospace`;
@@ -262,7 +264,6 @@
 
       resBadge.textContent = `Base Size: ${width} × ${height} px`;
 
-      // Build crisp SVG (Vector image never blurs regardless of how long the tree is!)
       let svgParts = [];
       svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`);
       svgParts.push(`<style>
@@ -275,19 +276,15 @@
         .title { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #94a3b8; font-weight: 600; }
       </style>`);
 
-      // Main Dark Background
       svgParts.push(`<rect width="100%" height="100%" fill="#0b1120" rx="12"/>`);
-      // Top Window Bar
       svgParts.push(`<rect width="100%" height="${headerHeight}" fill="#1e293b" rx="12"/>`);
       svgParts.push(`<rect y="${headerHeight - 12}" width="100%" height="12" fill="#1e293b"/>`);
 
-      // Mac Window Dots
       svgParts.push(`<circle cx="24" cy="${headerHeight/2}" r="6" fill="#ef4444"/>`);
       svgParts.push(`<circle cx="44" cy="${headerHeight/2}" r="6" fill="#f59e0b"/>`);
       svgParts.push(`<circle cx="64" cy="${headerHeight/2}" r="6" fill="#10b981"/>`);
       svgParts.push(`<text x="92" y="${headerHeight/2 + 4}" class="title">${escapeXml(zipName)} — Folder Structure</text>`);
 
-      // Render Each Line
       lines.forEach((line, index) => {
         const y = headerHeight + paddingY + index * lineHeight;
         if (line.type === 'root') {
@@ -306,10 +303,7 @@
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const svgUrl = URL.createObjectURL(svgBlob);
 
-      // Set Preview Image to Vector SVG (100% sharp on any length!)
       previewImg.src = svgUrl;
-
-      // Setup SVG direct download
       downloadSvgBtn.href = svgUrl;
       downloadSvgBtn.download = `${currentZipName}_tree.svg`;
 
@@ -317,7 +311,30 @@
       outputSection.classList.remove('hidden');
     }
 
-    // High-Res PNG Export Handler (Auto-adjusts scale for huge trees so mobile browsers don't crash or blur)
+    // Text file export handler
+    downloadTxtBtn.addEventListener('click', () => {
+      if (!currentLines.length) return;
+      
+      let textContent = '';
+      currentLines.forEach(line => {
+        if (line.type === 'root') {
+          textContent += line.text + '\n';
+        } else {
+          textContent += line.prefix + line.name + (line.meta || '') + '\n';
+        }
+      });
+
+      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentZipName}_tree.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    });
+
     downloadPngBtn.addEventListener('click', () => {
       if (!currentLines.length) return;
       const originalText = downloadPngBtn.innerHTML;
@@ -334,11 +351,10 @@
           const width = currentSvgWidth;
           const height = currentSvgHeight;
 
-          // Browser safe canvas limit check (Android Chrome max height ~ 16384px - 32767px)
           const MAX_CANVAS_DIM = 16000;
-          const MAX_AREA = 24000000; // 24 Megapixels safe limit for mobile RAM
+          const MAX_AREA = 24000000; 
 
-          let scale = 2.5; // Default Ultra-HD 2.5x scale
+          let scale = 2.5; 
           if (height * scale > MAX_CANVAS_DIM) {
             scale = MAX_CANVAS_DIM / height;
           }
@@ -353,15 +369,12 @@
           const ctx = canvas.getContext('2d');
           ctx.scale(scale, scale);
 
-          // Background
           ctx.fillStyle = '#0b1120';
           ctx.fillRect(0, 0, width, height);
 
-          // Header Bar
           ctx.fillStyle = '#1e293b';
           ctx.fillRect(0, 0, width, headerHeight);
 
-          // Window Dots
           ['#ef4444', '#f59e0b', '#10b981'].forEach((color, idx) => {
             ctx.beginPath();
             ctx.arc(24 + idx * 20, headerHeight / 2, 6, 0, Math.PI * 2);
