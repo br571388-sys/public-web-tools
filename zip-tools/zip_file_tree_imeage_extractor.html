@@ -20,47 +20,27 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    /* Main scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #090d16;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
-    }
-    /* Thin horizontal scrollbar for search results */
-    .hide-scroll::-webkit-scrollbar {
-      height: 4px;
-    }
-    .hide-scroll::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .hide-scroll::-webkit-scrollbar-thumb {
-      background: #38bdf8;
-      border-radius: 4px;
-    }
-    .hide-scroll::-webkit-scrollbar-thumb:hover {
-      background: #0ea5e9;
-    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    
+    .hide-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
+    .hide-scroll::-webkit-scrollbar-track { background: transparent; }
+    .hide-scroll::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 4px; }
+    .hide-scroll::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
   </style>
 </head>
 <body class="p-3 md:p-8 flex flex-col items-center">
 
   <div class="glass w-full max-w-5xl rounded-2xl p-5 md:p-7 shadow-2xl relative">
-    <!-- Header -->
+    
     <div class="text-center mb-6">
       <h1 class="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 bg-clip-text text-transparent">
         Ultra-HD Zip Tree & File Extractor
       </h1>
       <p class="text-slate-400 text-xs md:text-sm mt-1">
-        Upload ZIP • Generate Tree • Search, Select & Extract Files
+        Upload ZIP • Search or Paste Any Format • Bulk Extract
       </p>
     </div>
 
@@ -76,7 +56,6 @@
       <input id="zipInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" class="hidden" />
     </label>
 
-    <!-- Status Loader -->
     <div id="status" class="hidden text-center py-5 text-cyan-400 text-sm font-medium animate-pulse">
       ⚡ Processing ZIP...
     </div>
@@ -84,28 +63,39 @@
     <!-- Output Section -->
     <div id="outputSection" class="hidden mt-6 flex flex-col gap-4">
       
-      <!-- New Search Bar Section -->
+      <!-- Multi-line Search Bar Section -->
       <div class="relative w-full z-20">
-        <input type="text" id="fileSearch" placeholder="Search specific files in ZIP..." class="w-full bg-slate-900 text-slate-200 px-4 py-3 rounded-xl border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-sm placeholder-slate-500">
-        <!-- Search Results Dropdown -->
+        <textarea id="fileSearch" rows="1" placeholder="Search a file, or paste multiple lines to auto-select files in bulk..." class="w-full bg-slate-900 text-slate-200 px-4 py-3 rounded-xl border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none text-sm placeholder-slate-500 resize-none hide-scroll" style="min-height: 48px; max-height: 120px;"></textarea>
+        
         <div id="searchResults" class="hidden absolute top-full left-0 w-full mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
-          <!-- Results injected via JS -->
         </div>
       </div>
 
-      <!-- Multiple Selection Tray -->
-      <div id="selectionTray" class="hidden bg-emerald-900/30 border border-emerald-700/50 p-3 rounded-xl flex flex-wrap justify-between items-center gap-3">
-        <span id="selectionCount" class="text-emerald-400 text-sm font-semibold">0 files selected</span>
-        <div class="flex gap-2">
-          <button id="copyAllBtn" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition">
-            📋 Copy All Texts
-          </button>
-          <button id="downloadAllTxtBtn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg transition">
-            ⬇ Download All as TXT
-          </button>
-          <button id="clearSelectionBtn" class="px-3 py-1.5 bg-red-900/50 hover:bg-red-800 text-red-200 text-xs font-semibold rounded-lg transition">
-            Clear
-          </button>
+      <!-- Expandable Selection Tray -->
+      <div id="selectionTray" class="hidden flex flex-col bg-emerald-900/30 border border-emerald-700/50 p-3 rounded-xl gap-2 transition-all">
+        <div class="flex flex-wrap justify-between items-center gap-3">
+          <div class="flex items-center gap-2">
+            <span id="selectionCount" class="text-emerald-400 text-sm font-semibold">0 files selected</span>
+            <button id="toggleTrayBtn" class="text-xs bg-emerald-800/50 hover:bg-emerald-700/50 text-emerald-200 px-2 py-1 rounded transition">
+              🔽 View Files
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button id="copyAllBtn" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition">
+              📋 Copy All
+            </button>
+            <button id="downloadAllTxtBtn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-lg transition">
+              ⬇ Download All
+            </button>
+            <button id="clearSelectionBtn" class="px-3 py-1.5 bg-red-900/50 hover:bg-red-800 text-red-200 text-xs font-semibold rounded-lg transition">
+              Clear All
+            </button>
+          </div>
+        </div>
+
+        <div id="selectedListContainer" class="hidden border-t border-emerald-700/50 pt-3 mt-1">
+          <ul id="selectedFilesUl" class="max-h-40 overflow-y-auto hide-scroll flex flex-col gap-1.5 pr-1">
+          </ul>
         </div>
       </div>
 
@@ -134,7 +124,6 @@
         </div>
       </div>
 
-      <!-- Scrollable Image Preview Box -->
       <div id="previewContainer" class="w-full overflow-auto rounded-xl border border-slate-700/80 bg-[#0b1120] p-3 max-h-[60vh] shadow-inner">
         <img id="previewImg" class="max-w-none h-auto rounded-lg shadow-md" alt="Folder Tree Image" />
       </div>
@@ -178,7 +167,6 @@
     const resBadge = document.getElementById('resBadge');
     const fitToggleBtn = document.getElementById('fitToggleBtn');
 
-    // UI Elements
     const fileSearch = document.getElementById('fileSearch');
     const searchResults = document.getElementById('searchResults');
     const actionModal = document.getElementById('actionModal');
@@ -186,8 +174,13 @@
     const btnCopyFile = document.getElementById('btnCopyFile');
     const btnDownloadFile = document.getElementById('btnDownloadFile');
     const btnSelectFile = document.getElementById('btnSelectFile');
+    
     const selectionTray = document.getElementById('selectionTray');
     const selectionCount = document.getElementById('selectionCount');
+    const toggleTrayBtn = document.getElementById('toggleTrayBtn');
+    const selectedListContainer = document.getElementById('selectedListContainer');
+    const selectedFilesUl = document.getElementById('selectedFilesUl');
+    
     const copyAllBtn = document.getElementById('copyAllBtn');
     const downloadAllTxtBtn = document.getElementById('downloadAllTxtBtn');
     const clearSelectionBtn = document.getElementById('clearSelectionBtn');
@@ -223,42 +216,105 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
-    // --- Search Logic ---
+    toggleTrayBtn.onclick = () => {
+      if (selectedListContainer.classList.contains('hidden')) {
+        selectedListContainer.classList.remove('hidden');
+        toggleTrayBtn.textContent = '🔼 Hide Files';
+      } else {
+        selectedListContainer.classList.add('hidden');
+        toggleTrayBtn.textContent = '🔽 View Files';
+      }
+    };
+
+    // --- Search & Smart Bulk Paste Logic ---
     fileSearch.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      searchResults.innerHTML = '';
+      const query = e.target.value;
       
-      if (!query) {
+      e.target.style.height = 'auto';
+      e.target.style.height = (e.target.scrollHeight) + 'px';
+
+      if (query.includes('\n')) {
+        const lines = query.split('\n');
+        let newMatches = 0;
+
+        lines.forEach(line => {
+          // 1. Ignore useless lines like separators or placeholders
+          if (line.includes('━━━') || line.includes('[paste') || line.trim() === '') {
+            return;
+          }
+
+          // 2. Clean prefixes, emojis (📍, 📄, 📁), tree symbols, and file headers
+          let cleanLine = line
+            .replace(/^[│├└─\s📍📄📁•\-*>]+/g, '') 
+            .replace(/^(Link|File:|Size:|FILE\s+\d+\/\d+)\s*/i, '')
+            .replace(/[│├└─]/g, '')
+            .trim();
+          
+          if (cleanLine.length > 2) {
+            // Find file
+            const match = flatFileList.find(f => f.path.toLowerCase().endsWith(cleanLine.toLowerCase()) || f.path.toLowerCase() === cleanLine.toLowerCase());
+            if (match && !match.selected) {
+              match.selected = true;
+              newMatches++;
+            }
+          }
+        });
+
+        if (newMatches > 0) {
+          updateSelectionTray();
+          selectedListContainer.classList.remove('hidden');
+          toggleTrayBtn.textContent = '🔼 Hide Files';
+        }
+        
+        e.target.value = '';
+        e.target.style.height = 'auto';
         searchResults.classList.add('hidden');
         return;
       }
 
-      const filtered = flatFileList.filter(f => f.path.toLowerCase().includes(query)).slice(0, 50);
+      const lowerQuery = query.toLowerCase();
+      searchResults.innerHTML = '';
+      
+      if (!lowerQuery) {
+        searchResults.classList.add('hidden');
+        return;
+      }
+
+      const filtered = flatFileList.filter(f => f.path.toLowerCase().includes(lowerQuery)).slice(0, 50);
       
       if (filtered.length === 0) {
         searchResults.innerHTML = `<div class="p-3 text-slate-400 text-sm">No files found.</div>`;
       } else {
+        const bulkBtnDiv = document.createElement('div');
+        bulkBtnDiv.className = "p-2 border-b border-slate-700 bg-slate-800/90 sticky top-0 backdrop-blur-sm";
+        bulkBtnDiv.innerHTML = `<button class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded text-xs font-bold text-white transition">✅ Select All ${filtered.length} Results</button>`;
+        bulkBtnDiv.onclick = (event) => {
+          event.stopPropagation();
+          filtered.forEach(f => f.selected = true);
+          updateSelectionTray();
+          fileSearch.value = '';
+          searchResults.classList.add('hidden');
+        };
+        searchResults.appendChild(bulkBtnDiv);
+
         filtered.forEach(fileObj => {
           const div = document.createElement('div');
-          // Yahan pe flex and gap adjust kiya hai
-          div.className = "p-3 border-b border-slate-800 hover:bg-slate-800 flex justify-between items-center transition gap-3";
+          div.className = "p-3 border-b border-slate-800 hover:bg-slate-800 flex justify-between items-center transition gap-3 cursor-pointer";
           
           let nameHTML = fileObj.path;
-          const idx = nameHTML.toLowerCase().indexOf(query);
+          const idx = nameHTML.toLowerCase().indexOf(lowerQuery);
           if(idx !== -1) {
-             nameHTML = nameHTML.substring(0, idx) + `<span class="text-cyan-400 font-bold bg-cyan-900/30">` + nameHTML.substring(idx, idx + query.length) + `</span>` + nameHTML.substring(idx + query.length);
+             nameHTML = nameHTML.substring(0, idx) + `<span class="text-cyan-400 font-bold bg-cyan-900/30">` + nameHTML.substring(idx, idx + lowerQuery.length) + `</span>` + nameHTML.substring(idx + lowerQuery.length);
           }
           
-          // Truncate ki jagah overflow-x-auto aur whitespace-nowrap add kiya
           div.innerHTML = `
             <div class="overflow-x-auto whitespace-nowrap hide-scroll flex-1 text-sm text-slate-200 font-mono pb-1" style="max-width: calc(100% - 70px);">
               ${nameHTML}
             </div>
-            ${fileObj.selected ? '<div class="whitespace-nowrap"><span class="text-emerald-400 text-xs font-bold">✓ Selected</span></div>' : ''}
+            ${fileObj.selected ? '<div class="whitespace-nowrap"><span class="text-emerald-400 text-xs font-bold">✓</span></div>' : ''}
           `;
           
-          // Scroll karte waqt accidental click na ho, isliye pura div clickable rakha hai
-          div.onclick = (e) => openActionModal(fileObj);
+          div.onclick = () => openActionModal(fileObj);
           searchResults.appendChild(div);
         });
       }
@@ -336,8 +392,25 @@
       if(selected.length > 0) {
         selectionTray.classList.remove('hidden');
         selectionCount.textContent = `${selected.length} file(s) selected`;
+        
+        selectedFilesUl.innerHTML = '';
+        selected.forEach(fileObj => {
+          const li = document.createElement('li');
+          li.className = "flex justify-between items-center bg-emerald-950/40 p-2 rounded border border-emerald-800/50";
+          li.innerHTML = `
+            <span class="text-emerald-200 text-xs font-mono truncate mr-2">${fileObj.path}</span>
+            <button class="text-red-400 hover:text-red-300 font-bold text-xs bg-red-900/30 px-2 py-1 rounded transition">❌</button>
+          `;
+          li.querySelector('button').onclick = () => {
+            fileObj.selected = false;
+            updateSelectionTray();
+          };
+          selectedFilesUl.appendChild(li);
+        });
+
       } else {
         selectionTray.classList.add('hidden');
+        selectedFilesUl.innerHTML = '';
       }
     }
 
@@ -403,6 +476,7 @@
       
       flatFileList = [];
       fileSearch.value = '';
+      fileSearch.style.height = 'auto';
       selectionTray.classList.add('hidden');
 
       try {
