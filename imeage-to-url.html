@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudLink — Direct Image Uploader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif']
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.025);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-highlight: rgba(255, 255, 255, 0.12);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: #02040a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(14, 165, 233, 0.05) 0%, transparent 60%),
+                #02040a;
+        }
+
+        .ambient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .orb-1 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(59,130,246,0.3), transparent 70%);
+            top: -10%; left: -5%;
+        }
+
+        .orb-2 {
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, rgba(139,92,246,0.25), transparent 70%);
+            bottom: -10%; right: -5%;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(14,165,233,0.2), transparent 70%);
+            top: 40%; left: 60%;
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .liquid-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 var(--glass-highlight);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .liquid-glass::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            opacity: 0.4;
+        }
+
+        .liquid-glass-strong {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .liquid-btn {
+            background: linear-gradient(180deg, rgba(59,130,246,0.2) 0%, rgba(37,99,235,0.3) 100%);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            box-shadow: 
+                0 4px 20px rgba(37, 99, 235, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .liquid-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .liquid-btn:hover::before { opacity: 1; }
+        
+        .liquid-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 30px rgba(37, 99, 235, 0.35),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+        .liquid-btn:active { transform: translateY(0); }
+
+        .liquid-btn:disabled {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.05);
+            box-shadow: none;
+            color: rgba(255,255,255,0.2);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .drop-zone {
+            border: 1.5px dashed rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.015);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .drop-zone::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1.5px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.4), rgba(139,92,246,0.4), rgba(59,130,246,0.4));
+            background-size: 200% 200%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .drop-zone.dragover {
+            border-color: transparent;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .drop-zone.dragover::after {
+            opacity: 1;
+        }
+
+        .success-glow {
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.03);
+            box-shadow: 
+                0 0 40px rgba(16, 185, 129, 0.1),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .glass-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #34d399;
+            transition: all 0.3s;
+            min-width: 0;
+        }
+
+        .glass-input:focus {
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.08); 
+            border-radius: 10px; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+            background: rgba(255,255,255,0.15); 
+        }
+
+        .fade-in { 
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        }
+        
+        .fade-in-up { 
+            animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            opacity: 0;
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
+        }
+        
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(30px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+
+        .page {
+            transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .page.hidden-page {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            transform: translateY(20px);
+            height: 0;
+            overflow: hidden;
+        }
+
+        .page.active-page {
+            opacity: 1;
+            pointer-events: all;
+            position: relative;
+            transform: translateY(0);
+            height: auto;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .step-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3));
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #toast {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .copy-btn-fixed {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            transition: all 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .copy-btn-fixed:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+
+        .particle {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 15s infinite linear;
+            z-index: -1;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+        }
+
+        /* Ensure app page fills screen nicely */
+        .app-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background -->
+    <div class="ambient-bg"></div>
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+
+    <!-- Floating Particles -->
+    <div class="particle" style="left: 10%; animation-delay: 0s; animation-duration: 12s;"></div>
+    <div class="particle" style="left: 30%; animation-delay: 3s; animation-duration: 15s;"></div>
+    <div class="particle" style="left: 50%; animation-delay: 7s; animation-duration: 10s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 5s; animation-duration: 14s;"></div>
+    <div class="particle" style="left: 90%; animation-delay: 2s; animation-duration: 16s;"></div>
+
+    <!-- ========================================== -->
+    <!-- PAGE 1: LANDING / ONBOARDING               -->
+    <!-- ========================================== -->
+    <div id="landingPage" class="page active-page max-w-4xl px-4 py-10">
+        
+        <!-- Hero -->
+        <div class="text-center mb-16 mt-10 fade-in-up">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass text-xs font-medium text-blue-300 mb-6 tracking-wide uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                Free & Instant
+            </div>
+            <h1 class="font-display text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
+                Share Images<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                    Without the Hassle
+                </span>
+            </h1>
+            <p class="text-gray-400 text-lg md:text-xl max-w-xl mx-auto leading-relaxed">
+                CloudLink converts your images into direct, shareable URLs in seconds. 
+                No signup. No compression. Just paste and go.
+            </p>
+        </div>
+
+        <!-- How It Works -->
+        <div class="w-full grid md:grid-cols-3 gap-5 mb-16">
+            <div class="step-card rounded-2xl p-6 fade-in-up stagger-1">
+                <div class="step-number w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold mb-4 text-sm">1</div>
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
+                    <i class="fa-regular fa-image text-blue-400 text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold text-lg mb-2">Upload</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Drag & drop or click to select any image. We support JPG, PNG, WEBP, and GIF up to 32MB.
+                </p>
+            </div>
+
+            <div class="step-card rounded-2xl p-6 fade-in-up stagger-2">
+                <div class="step-number w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold mb-4 text-sm">2</div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-link text-indigo-400 text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold text-lg mb-2">Generate Link</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Click once to upload. Our servers process your image instantly and return a clean, direct URL.
+                </p>
+            </div>
+
+            <div class="step-card rounded-2xl p-6 fade-in-up stagger-3">
+                <div class="step-number w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold mb-4 text-sm">3</div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
+                    <i class="fa-regular fa-paper-plane text-emerald-400 text-xl"></i>
+                </div>
+                <h3 class="text-white font-semibold text-lg mb-2">Share</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Copy the link with one click and paste it anywhere. Your upload history is saved automatically.
+                </p>
+            </div>
+        </div>
+
+        <!-- Features Strip -->
+        <div class="flex flex-wrap justify-center gap-6 mb-12 text-sm text-gray-400 fade-in-up stagger-3">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-shield-halved text-blue-400/60"></i> Secure Uploads</span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400/60"></i> Lightning Fast</span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-infinity text-purple-400/60"></i> Unlimited History</span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-eye-slash text-emerald-400/60"></i> No Account Needed</span>
+        </div>
+
+        <!-- CTA -->
+        <button onclick="showPage('appPage')" class="liquid-btn text-white font-semibold py-4 px-10 rounded-2xl text-lg flex items-center gap-3 fade-in-up stagger-4 group">
+            <span>Get Started</span>
+            <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+        </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PAGE 2: UPLOAD APP                         -->
+    <!-- ========================================== -->
+    <div id="appPage" class="page hidden-page w-full max-w-2xl app-wrapper">
+        
+        <!-- Top Nav -->
+        <div class="w-full flex items-center justify-between mb-6 fade-in">
+            <button onclick="showPage('landingPage')" class="text-gray-400 hover:text-white text-sm flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </button>
+            <button onclick="showPage('historyPage'); loadHistory();" class="text-gray-400 hover:text-white text-sm flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-clock-rotate-left"></i> History
+            </button>
+        </div>
+
+        <div class="w-full liquid-glass liquid-glass-strong rounded-3xl p-6 md:p-10 fade-in">
+            
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/20 mb-4">
+                    <i class="fa-solid fa-cloud-arrow-up text-blue-400 text-2xl"></i>
+                </div>
+                <h1 class="font-display text-3xl font-bold text-white mb-2">CloudLink</h1>
+                <p class="text-gray-400 text-sm">Convert any image into a direct, shareable URL instantly.</p>
+            </div>
+
+            <!-- Upload Zone -->
+            <div id="dropZone" class="drop-zone rounded-2xl p-8 text-center cursor-pointer mb-6 relative overflow-hidden" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                
+                <div id="uploadPrompt" class="flex flex-col items-center gap-3 pointer-events-none relative z-10">
+                    <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-1">
+                        <i class="fa-regular fa-image text-2xl text-blue-300"></i>
+                    </div>
+                    <p class="text-gray-200 font-medium">Click or Drag & Drop image here</p>
+                    <p class="text-xs text-gray-500">Supports JPG, PNG, WEBP, GIF (Max 32MB)</p>
+                </div>
+
+                <!-- Image Preview -->
+                <img id="imagePreview" class="hidden max-h-64 mx-auto rounded-xl shadow-2xl object-contain relative z-10 ring-1 ring-white/10" />
+            </div>
+
+            <!-- Action Button -->
+            <button id="uploadBtn" onclick="uploadImage()" disabled
+                class="w-full liquid-btn disabled:!bg-white/5 disabled:!border-white/5 disabled:!shadow-none disabled:!text-gray-500 text-white font-semibold py-4 px-4 rounded-xl flex justify-center items-center gap-2">
+                <i class="fa-solid fa-link"></i> Generate Direct Link
+            </button>
+
+            <!-- Result Section -->
+            <div id="resultSection" class="hidden mt-6 rounded-xl p-4 fade-in success-glow">
+                <p class="text-xs font-semibold text-emerald-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> Upload Successful
+                </p>
+                <!-- FIXED: Copy button overlap - using min-width and flex-shrink -->
+                <div class="flex gap-3 items-center">
+                    <input type="text" id="finalUrl" readonly class="flex-1 glass-input font-mono text-sm rounded-xl p-3.5 outline-none min-w-0">
+                    <button onclick="copyUrl('finalUrl')" class="copy-btn-fixed px-5 py-3.5 rounded-xl font-medium text-sm flex items-center gap-2">
+                        <i class="fa-regular fa-copy"></i> <span class="hidden sm:inline">Copy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PAGE 3: HISTORY                            -->
+    <!-- ========================================== -->
+    <div id="historyPage" class="page hidden-page w-full max-w-2xl app-wrapper">
+        
+        <!-- Top Nav -->
+        <div class="w-full flex items-center justify-between mb-6 fade-in">
+            <button onclick="showPage('appPage')" class="text-gray-400 hover:text-white text-sm flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-arrow-left"></i> Back to Upload
+            </button>
+        </div>
+
+        <div class="w-full liquid-glass liquid-glass-strong rounded-3xl p-6 md:p-8 fade-in">
+            <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-gray-400 text-sm"></i> Your Upload History
+            </h2>
+            <div id="historyList" class="flex flex-col gap-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+                <div class="text-center text-gray-500 text-sm py-4">Loading history...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 rounded-xl px-5 py-4 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-500 z-50 shadow-2xl">
+        <i id="toastIcon" class="fa-solid fa-check-circle text-emerald-400 text-lg"></i>
+        <p id="toastMsg" class="text-white text-sm font-medium">Link copied to clipboard!</p>
+    </div>
+
+    <script>
+        // ==========================================
+        // PAGE NAVIGATION
+        // ==========================================
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active-page');
+                p.classList.add('hidden-page');
+            });
+            const target = document.getElementById(pageId);
+            target.classList.remove('hidden-page');
+            target.classList.add('active-page');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // SCRIPT CONFIGURATION
+        // ==========================================
+        const CONFIG = {
+            IMGBB_API_KEY: "7ead8928fc74011febd5bfcc92c4834e",
+            DB_API_URL: "https://unknown-02-fz-bot.hf.space",
+            DB_API_KEY: "1e3c07f86eb92a1a3b71f08d",
+            TOAST_DURATION: 3000
+        };
+
+        // ==========================================
+        // USER ISOLATION LOGIC
+        // ==========================================
+        function getUserId() {
+            let uid = localStorage.getItem('cloudlink_user_id');
+            if (!uid) {
+                uid = 'user_' + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('cloudlink_user_id', uid);
+            }
+            return uid;
+        }
+        const USER_ID = getUserId();
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const resultSection = document.getElementById('resultSection');
+        const finalUrl = document.getElementById('finalUrl');
+        const historyList = document.getElementById('historyList');
+        
+        let selectedFile = null;
+
+        // --- Drag & Drop Handlers ---
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect({ target: fileInput });
+            }
+        });
+
+        // --- File Preview Logic ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file || !file.type.startsWith('image/')) {
+                showToast("Please select a valid image file.", "error");
+                return;
+            }
+
+            selectedFile = file;
+            uploadBtn.disabled = false;
+            resultSection.classList.add('hidden');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+                uploadPrompt.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Upload to ImgBB ---
+        async function uploadImage() {
+            if (!selectedFile) {
+                showToast("No image selected!", "error");
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading...';
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${CONFIG.IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const imgUrl = data.data.url;
+                    finalUrl.value = imgUrl;
+                    resultSection.classList.remove('hidden');
+                    showToast("Image uploaded successfully!");
+                    
+                    await saveToHistory(imgUrl);
+                } else {
+                    throw new Error(data.error.message || "Upload failed");
+                }
+
+            } catch (error) {
+                console.error(error);
+                showToast(`Error: ${error.message}`, "error");
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fa-solid fa-link"></i> Generate Direct Link';
+            }
+        }
+
+        // --- DB-API: Fetch History ---
+        async function loadHistory() {
+            historyList.innerHTML = `<div class="text-center text-gray-500 text-sm py-4">Loading history...</div>`;
+            try {
+                const response = await fetch(`${CONFIG.DB_API_URL}/api/read`, {
+                    headers: { 'X-API-Key': CONFIG.DB_API_KEY }
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const userHistory = result.data[USER_ID] || [];
+                    renderHistory(userHistory);
+                }
+            } catch (error) {
+                console.error("Failed to load history:", error);
+                historyList.innerHTML = `<div class="text-center text-red-400 text-sm py-4">Failed to load history.</div>`;
+            }
+        }
+
+        // --- DB-API: Save to History ---
+        async function saveToHistory(imageUrl) {
+            try {
+                const readRes = await fetch(`${CONFIG.DB_API_URL}/api/read`, {
+                    headers: { 'X-API-Key': CONFIG.DB_API_KEY }
+                });
+                const readData = await readRes.json();
+                
+                let userHistory = readData.data[USER_ID] || [];
+                
+                userHistory.unshift({
+                    url: imageUrl,
+                    timestamp: new Date().toISOString()
+                });
+                
+                const writeRes = await fetch(`${CONFIG.DB_API_URL}/api/write`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': CONFIG.DB_API_KEY
+                    },
+                    body: JSON.stringify({ [USER_ID]: userHistory })
+                });
+
+                const writeData = await writeRes.json();
+                if (writeData.status === 'success') {
+                    // History is on separate page now, no need to render immediately
+                }
+            } catch (error) {
+                console.error("Failed to save history:", error);
+            }
+        }
+
+        // --- Render History UI ---
+        function renderHistory(historyArray) {
+            if (!historyArray || historyArray.length === 0) {
+                historyList.innerHTML = `<div class="text-center text-gray-500 text-sm py-8">No uploads yet. Your history will appear here.</div>`;
+                return;
+            }
+
+            historyList.innerHTML = '';
+            historyArray.forEach((item, index) => {
+                const uniqueId = `hist_url_${index}`;
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-3 history-item p-3 rounded-xl";
+                
+                div.innerHTML = `
+                    <div class="h-14 w-14 shrink-0 rounded-xl flex items-center justify-center overflow-hidden border border-white/5 bg-black/20">
+                        <img src="${item.url}" class="w-full h-full object-cover" loading="lazy" alt="Preview" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fa-regular fa-image text-gray-500\\'></i>';">
+                    </div>
+                    <input type="text" id="${uniqueId}" value="${item.url}" readonly class="flex-1 bg-transparent text-gray-300 font-mono text-xs outline-none px-2 truncate min-w-0">
+                    <button onclick="copyUrl('${uniqueId}')" class="shrink-0 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 p-3 rounded-xl transition" title="Copy Link">
+                        <i class="fa-regular fa-copy text-xs"></i>
+                    </button>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        // --- Copy to Clipboard ---
+        function copyUrl(inputId) {
+            const urlInput = document.getElementById(inputId);
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(urlInput.value).then(() => {
+                showToast("Direct link copied to clipboard!");
+            });
+        }
+
+        // --- Toast Notification System ---
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            
+            if (type === "error") {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-red-400 text-lg";
+            } else {
+                toastIcon.className = "fa-solid fa-check-circle text-emerald-400 text-lg";
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, CONFIG.TOAST_DURATION);
+        }
+    </script>
+</body>
+</html>
