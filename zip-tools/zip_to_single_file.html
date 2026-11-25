@@ -1,236 +1,696 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#090d16">
+<meta name="theme-color" content="#0b0e17">
 <title>ZIP to AI Flattener</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
   tailwind.config = {
     darkMode: 'class',
-    theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] } } }
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace']
+        },
+        colors: {
+          base: 'var(--bg-base)',
+          panel: 'var(--bg-panel)',
+          input: 'var(--bg-input)',
+          bdr: 'var(--border-main)',
+          main: 'var(--text-main)',
+          muted: 'var(--text-muted)',
+          accent: 'var(--accent)',
+          'accent-hover': 'var(--accent-hover)'
+        }
+      }
+    }
   }
 </script>
 <style>
-  html { -webkit-text-size-adjust: 100%; }
-  body { padding-bottom: env(safe-area-inset-bottom); }
+  :root, [data-theme="dark"] {
+    --bg-base: #0b0e17;
+    --bg-panel: #121627;
+    --bg-input: #0b0e17;
+    --border-main: #1a1f33;
+    --text-main: #d8dced;
+    --text-muted: #8b91a8;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+  }
+
+  [data-theme="extra-dark"] {
+    --bg-base: #050505;
+    --bg-panel: #0f0f0f;
+    --bg-input: #050505;
+    --border-main: #222222;
+    --text-main: #e5e5e5;
+    --text-muted: #737373;
+    --accent: #818cf8;
+    --accent-hover: #6366f1;
+  }
+
+  [data-theme="light"] {
+    --bg-base: #f1f5f9;
+    --bg-panel: #ffffff;
+    --bg-input: #f8fafc;
+    --border-main: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+  }
+
+  * { -webkit-text-size-adjust: 100%; }
+  html, body { height: 100%; }
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: #0f172a; }
-  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-  .drop-active { border-color: #6366f1 !important; background: rgba(99,102,241,.12) !important; }
-  .panel-hidden { display: none; }
-  @media (min-width: 1024px) { .panel-hidden { display: flex !important; } }
-  input[type=checkbox] { accent-color: #6366f1; }
-  details > summary { list-style: none; }
-  details > summary::-webkit-details-marker { display: none; }
-  details[open] .chev { transform: rotate(180deg); }
-  textarea { -webkit-overflow-scrolling: touch; }
-  button { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-main); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* Sidebar */
+  #sidebar {
+    width: 264px;
+    transition: width 0.3s cubic-bezier(0.4,0,0.2,1), background-color 0.3s ease;
+  }
+  #sidebar.collapsed { width: 76px; }
+  #sidebar.collapsed .sidebar-label { opacity: 0; width: 0; overflow: hidden; pointer-events: none; }
+  #sidebar.collapsed .sidebar-logo { justify-content: center; }
+  #sidebar.collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+  #sidebar.collapsed .nav-item::before { display: none; }
+
+  .nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .nav-item:hover { background: var(--bg-input); color: var(--text-main); }
+  .nav-item:disabled { opacity: 0.45; cursor: not-allowed; }
+  .nav-item:disabled:hover { background: transparent; color: var(--text-muted); }
+  .nav-item.nav-active {
+    background: rgba(99,102,241,0.1);
+    color: var(--accent);
+  }
+  .nav-item.nav-active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 22px;
+    background: linear-gradient(180deg, var(--accent), #8b5cf6);
+    border-radius: 0 3px 3px 0;
+  }
+  .nav-item.nav-active svg { color: var(--accent); }
+  .sidebar-label { transition: opacity 0.2s ease, width 0.2s ease; }
+
+  @media (max-width: 1023px) {
+    #sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; z-index: 60;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), background-color 0.3s ease;
+      width: 264px !important;
+      box-shadow: 24px 0 60px rgba(0,0,0,0.5);
+      background-color: var(--bg-panel);
+    }
+    #sidebar.open { transform: translateX(0); }
+    #sidebar.collapsed { width: 264px !important; }
+    #sidebar.collapsed .sidebar-label { opacity: 1; width: auto; }
+    #sidebar.collapsed .nav-item { justify-content: flex-start; padding-left: 14px; padding-right: 14px; }
+    #sidebar.collapsed .nav-item::before { display: block; }
+  }
+  
+  #sidebarOverlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 55;
+  }
+  @media (max-width: 1023px) { #sidebarOverlay.open { display: block; } }
+
+  /* Toggle switch */
+  .switch {
+    position: relative; width: 40px; height: 22px;
+    background: var(--border-main); border-radius: 11px;
+    transition: background 0.2s ease; flex-shrink: 0;
+  }
+  .switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; background: var(--text-main);
+    border-radius: 50%; transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  input.toggle:checked + .switch { background: var(--accent); }
+  input.toggle:checked + .switch::after { transform: translateX(18px); background: #fff; }
+
+  /* Checkbox */
+  input[type="checkbox"].tree-check {
+    appearance: none; -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--border-main);
+    border-radius: 4px; background: var(--bg-input);
+    cursor: pointer; position: relative;
+    transition: all 0.15s ease; flex-shrink: 0;
+  }
+  input[type="checkbox"].tree-check:hover { border-color: var(--accent); }
+  input[type="checkbox"].tree-check:checked {
+    background: var(--accent); border-color: transparent;
+  }
+  input[type="checkbox"].tree-check:checked::after {
+    content: ''; position: absolute; left: 4.5px; top: 1px;
+    width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  input[type="checkbox"].tree-check:indeterminate { background: var(--accent); border-color: transparent; }
+  input[type="checkbox"].tree-check:indeterminate::after {
+    content: ''; position: absolute; left: 3px; top: 6px;
+    width: 8px; height: 2px; background: #fff; border-radius: 1px;
+  }
+
+  #dropZone.dz-active {
+    border-color: var(--accent) !important;
+    background: rgba(99,102,241,0.06) !important;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.08);
+  }
+
+  .spinner {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 3px solid var(--border-main);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+  .anim-fade { animation: fadeIn 0.2s ease; }
+  .anim-slide { animation: slideUp 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .anim-scale { animation: scaleIn 0.22s cubic-bezier(0.4,0,0.2,1); }
+
+  .hero-grid {
+    background-image:
+      linear-gradient(var(--border-main) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-main) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    opacity: 0.4;
+  }
+
+  .file-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 16px; padding: 0 3px;
+    border-radius: 3px; font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px; font-weight: 700; letter-spacing: 0.02em;
+    border: 1px solid; flex-shrink: 0; line-height: 1;
+  }
+
+  /* Theme Selector */
+  .theme-btn {
+    padding: 8px; border-radius: 12px; border: 1px solid var(--border-main);
+    transition: all 0.2s; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: transparent;
+  }
+  .theme-btn:hover { border-color: var(--text-muted); }
+  .theme-btn.active { border-color: var(--accent); background: var(--bg-input); }
+  .theme-preview {
+    width: 100%; height: 48px; border-radius: 8px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .theme-preview.extra-dark { background: #050505; border: 1px solid #222; }
+  .theme-preview.dark { background: #0b0e17; border: 1px solid #1a1f33; }
+  .theme-preview.light { background: #f8fafc; border: 1px solid #e2e8f0; }
 </style>
 </head>
-<body class="bg-slate-950 text-slate-200 font-sans min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="min-h-screen flex selection:bg-indigo-500/40 selection:text-white">
 
-<!-- Header -->
-<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
-  <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
-    <div class="flex items-center gap-2.5 min-w-0">
-      <div class="bg-indigo-600/20 border border-indigo-500/30 p-1.5 rounded-lg text-indigo-400 shrink-0">
-        <i data-lucide="folder-git-2" class="w-5 h-5"></i>
-      </div>
-      <div class="min-w-0">
-        <h1 class="text-base font-bold text-white truncate leading-tight">ZIP to AI Flattener</h1>
-        <p class="text-[11px] text-slate-400 leading-tight truncate">Tree on top + all code below, in one file</p>
+<!-- Sidebar overlay (mobile) -->
+<div id="sidebarOverlay" class="lg:hidden"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<aside id="sidebar" class="fixed lg:sticky lg:top-0 left-0 h-screen shrink-0 z-50 flex flex-col bg-panel border-r border-bdr">
+  <!-- Logo -->
+  <div class="sidebar-logo flex items-center gap-3 h-16 px-5 border-b border-bdr shrink-0">
+    <div class="relative shrink-0">
+      <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500/40 to-violet-500/40 blur-md"></div>
+      <div class="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25">
+        <i data-lucide="layers" class="h-4 w-4"></i>
       </div>
     </div>
+    <div class="sidebar-label min-w-0">
+      <div class="text-[13.5px] font-bold text-main leading-tight tracking-tight">ZIP to AI Flattener</div>
+      <div class="text-[10.5px] text-muted leading-tight mt-0.5">Developer Tool</div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <div class="sidebar-label px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">Workspace</div>
+    <button data-nav="overview" class="nav-item nav-active w-full">
+      <i data-lucide="layout-dashboard" class="h-4 w-4 shrink-0"></i>
+      <span class="sidebar-label">Overview</span>
+    </button>
+    <button data-nav="workspace" class="nav-item w-full" disabled>
+      <i data-lucide="folder-tree" class="h-4 w-4 shrink-0"></i>
+      <span class="sidebar-label">Workspace</span>
+    </button>
+
+    <div class="sidebar-label px-3 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">Configuration</div>
+    <button data-nav="settings" class="nav-item w-full">
+      <i data-lucide="sliders-horizontal" class="h-4 w-4 shrink-0"></i>
+      <span class="sidebar-label">Settings</span>
+    </button>
+    <button id="navSkipped" class="nav-item w-full">
+      <i data-lucide="eye-off" class="h-4 w-4 shrink-0"></i>
+      <span class="sidebar-label">Skipped Files</span>
+    </button>
+  </nav>
+
+  <!-- Footer -->
+  <div class="p-3 border-t border-bdr shrink-0">
+    <div class="sidebar-label rounded-xl bg-input border border-bdr p-3">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="shield-check" class="h-3.5 w-3.5 text-emerald-400"></i>
+        <span class="text-[11px] font-semibold text-emerald-500">100% Local</span>
+      </div>
+      <p class="text-[10.5px] leading-relaxed text-muted">Files never leave your browser. All parsing is offline.</p>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<div class="flex-1 flex flex-col min-w-0 min-h-screen">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-bdr bg-base/80 backdrop-blur-xl px-4 sm:px-6 shrink-0 transition-colors">
+    <div class="flex items-center gap-3 min-w-0">
+      <button id="sidebarToggle" class="lg:hidden grid h-10 w-10 place-items-center rounded-xl border border-bdr bg-input text-muted hover:text-main transition shrink-0">
+        <i data-lucide="menu" class="h-5 w-5"></i>
+      </button>
+      <button id="sidebarCollapse" class="hidden lg:grid h-10 w-10 place-items-center rounded-xl border border-bdr bg-input text-muted hover:text-main transition shrink-0">
+        <i data-lucide="panel-left-close" class="h-4 w-4"></i>
+      </button>
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-[11px] text-muted hidden sm:inline">Home</span>
+        <i data-lucide="chevron-right" class="h-3 w-3 text-muted hidden sm:inline shrink-0"></i>
+        <h1 id="pageTitle" class="text-sm font-semibold text-main truncate">Overview</h1>
+      </div>
+    </div>
+
     <div class="flex items-center gap-2 shrink-0">
-      <button id="demoBtn" class="h-10 px-3 text-xs font-medium rounded-lg bg-slate-800 active:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5">
-        <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i><span class="hidden sm:inline">Demo ZIP</span><span class="sm:hidden">Demo</span>
+      <span id="topProjectName" class="hidden items-center gap-1.5 rounded-full border border-bdr bg-input px-3 py-1.5 text-[11px] font-mono text-muted max-w-[140px] sm:max-w-none">
+        <i data-lucide="package" class="h-3 w-3 text-accent shrink-0"></i>
+        <span class="truncate">project.zip</span>
+      </span>
+      <button id="resetBtn" class="hidden h-10 items-center gap-2 rounded-xl border border-bdr bg-input px-3.5 text-xs font-medium text-muted transition hover:border-rose-500/40 hover:text-rose-500 active:scale-95">
+        <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+        <span class="hidden sm:inline">New Project</span>
       </button>
-      <button id="resetBtn" class="hidden h-10 px-3 text-xs font-medium rounded-lg bg-slate-800 active:bg-rose-950 text-slate-300 border border-slate-700 items-center gap-1.5">
-        <i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>New</span>
+      <button id="settingsTopBtn" class="grid h-10 w-10 place-items-center rounded-xl border border-bdr bg-input text-muted transition hover:border-accent hover:text-accent active:scale-95">
+        <i data-lucide="settings-2" class="h-4 w-4"></i>
       </button>
     </div>
-  </div>
-</header>
+  </header>
 
-<main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 flex flex-col gap-4 pb-28 lg:pb-6">
+  <!-- Content -->
+  <main class="flex-1 px-4 sm:px-6 py-6 pb-28 lg:pb-6 min-w-0 flex flex-col">
 
-  <!-- Upload -->
-  <section id="uploadSection" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div class="lg:col-span-2">
-      <label id="dropZone" for="zipInput" class="group flex flex-col items-center justify-center w-full h-48 sm:h-64 border-2 border-dashed border-slate-700 rounded-2xl bg-slate-900/50 active:bg-slate-900 hover:border-indigo-500 transition cursor-pointer p-5 text-center">
-        <input id="zipInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" class="hidden">
-        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-3">
-          <i data-lucide="file-archive" class="w-7 h-7"></i>
-        </div>
-        <h2 class="text-base font-semibold text-white mb-1">Tap to choose your <span class="text-indigo-400 font-mono">.zip</span></h2>
-        <p class="text-xs text-slate-400 max-w-xs">Ya yahan drag &amp; drop karo. Sab kuch aapke browser mein hi hota hai, upload nahi hota.</p>
-      </label>
+    <!-- ===== Loading ===== -->
+    <div id="loading" class="hidden max-w-3xl mx-auto w-full anim-fade">
+      <div class="rounded-2xl border border-bdr bg-panel p-12 text-center mt-10">
+        <div class="spinner mx-auto mb-5"></div>
+        <h3 class="text-base font-semibold text-main">Reading ZIP…</h3>
+        <p id="loadingSub" class="mt-1.5 break-all font-mono text-xs text-muted">Please wait</p>
+      </div>
     </div>
 
-    <!-- Filters (collapsible) -->
-    <details class="bg-slate-900/70 border border-slate-800 rounded-2xl" id="filtersBox">
-      <summary class="flex items-center justify-between gap-2 p-4 cursor-pointer select-none min-h-[52px]">
-        <span class="flex items-center gap-2">
-          <i data-lucide="sliders-horizontal" class="w-4 h-4 text-indigo-400"></i>
-          <span class="text-sm font-semibold text-white">Smart Filters &amp; Format</span>
-        </span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 chev transition-transform"></i>
-      </summary>
-      <div class="px-4 pb-4 space-y-1 text-sm border-t border-slate-800 pt-3">
-        <label class="flex items-start gap-3 py-2 cursor-pointer">
-          <input type="checkbox" id="optJunk" checked class="mt-0.5 w-5 h-5 shrink-0">
-          <span><span class="font-medium text-slate-200 block text-sm">Ignore heavy/build folders</span>
-          <span class="text-xs text-slate-400 font-mono">node_modules, .git, dist, build, .next, __pycache__, vendor</span></span>
-        </label>
-        <label class="flex items-start gap-3 py-2 cursor-pointer">
-          <input type="checkbox" id="optLock" checked class="mt-0.5 w-5 h-5 shrink-0">
-          <span><span class="font-medium text-slate-200 block text-sm">Skip lockfiles</span>
-          <span class="text-xs text-slate-400 font-mono">package-lock.json, yarn.lock, pnpm-lock.yaml</span></span>
-        </label>
-        <label class="flex items-start gap-3 py-2 cursor-pointer">
-          <input type="checkbox" id="optDot" class="mt-0.5 w-5 h-5 shrink-0">
-          <span><span class="font-medium text-slate-200 block text-sm">Ignore hidden dotfiles</span>
-          <span class="text-xs text-slate-400 font-mono">.env, .gitignore, .eslintrc (.DS_Store always skipped)</span></span>
-        </label>
-        <label class="flex items-start gap-3 py-2 cursor-pointer">
-          <input type="checkbox" id="optFence" checked class="mt-0.5 w-5 h-5 shrink-0">
-          <span><span class="font-medium text-slate-200 block text-sm">Wrap code in markdown fences</span>
-          <span class="text-xs text-slate-400">Har file ka code code-block mein, AI ke liye better</span></span>
-        </label>
-        <label class="flex items-start gap-3 py-2 cursor-pointer">
-          <input type="checkbox" id="optLineNo" class="mt-0.5 w-5 h-5 shrink-0">
-          <span><span class="font-medium text-slate-200 block text-sm">Add line numbers</span>
-          <span class="text-xs text-slate-400">Bug/line reference ke liye useful</span></span>
-        </label>
-        <div class="pt-2">
-          <label class="block text-xs text-slate-400 mb-1.5 font-medium">Custom ignore (comma separated)</label>
-          <input type="text" id="optCustom" value=".min.js, .min.css, .map, .svg" autocapitalize="off" autocorrect="off" spellcheck="false"
-            class="w-full h-11 bg-slate-950 border border-slate-800 rounded-lg px-3 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500" placeholder=".svg, .map, .log">
+    <!-- ===== VIEW: OVERVIEW ===== -->
+    <section id="viewOverview" class="max-w-5xl mx-auto w-full">
+
+      <!-- Hero -->
+      <div class="relative mb-8 overflow-hidden rounded-3xl border border-bdr bg-panel px-6 py-10 sm:px-10 sm:py-14 text-center">
+        <div class="pointer-events-none absolute inset-0 hero-grid"></div>
+        <div class="pointer-events-none absolute -top-32 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-accent/20 blur-[100px]"></div>
+
+        <div class="relative">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-[11px] font-semibold text-accent">
+            <i data-lucide="sparkles" class="h-3 w-3"></i> AI-Ready Output
+          </span>
+          <h2 class="mt-4 text-2xl sm:text-4xl font-bold tracking-tight text-main leading-tight">Flatten Your Project</h2>
+          <p class="mt-3 max-w-xl mx-auto text-sm sm:text-base text-muted leading-relaxed">
+            Turn your entire ZIP project into a structured, AI-ready document — one file with the folder tree and every source file, ready to paste into any AI chat.
+          </p>
         </div>
       </div>
-    </details>
-  </section>
 
-  <!-- Loading -->
-  <div id="loading" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center">
-    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 mb-3 animate-pulse">
-      <i data-lucide="cpu" class="w-6 h-6"></i>
-    </div>
-    <h3 class="text-base font-semibold text-white mb-1">Reading ZIP...</h3>
-    <p class="text-xs text-slate-400 font-mono break-all" id="loadingSub">Please wait</p>
-  </div>
+      <!-- Upload + Demo -->
+      <div id="uploadSection">
+        <label id="dropZone" for="zipInput" class="group relative block cursor-pointer overflow-hidden rounded-3xl border-2 border-dashed border-bdr bg-panel p-8 sm:p-12 text-center transition-all hover:border-accent hover:bg-accent/[0.02] active:scale-[0.997]">
+          <input id="zipInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" class="hidden">
 
-  <!-- Workspace -->
-  <section id="workspace" class="hidden flex-col gap-4">
+          <div class="mx-auto mb-5 relative inline-block">
+            <div class="absolute inset-0 rounded-2xl bg-accent/40 blur-xl opacity-70 transition group-hover:opacity-100"></div>
+            <div class="relative grid h-16 w-16 place-items-center rounded-2xl bg-accent/10 border border-accent/30 text-accent transition group-hover:border-accent">
+              <i data-lucide="upload-cloud" class="h-7 w-7"></i>
+            </div>
+          </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 min-w-0">
-        <span class="text-[11px] text-slate-400 block">Archive</span>
-        <span id="stName" class="text-sm font-semibold text-white truncate block font-mono mt-0.5">-</span>
+          <h3 class="relative text-lg font-semibold text-main">Drop your ZIP file here</h3>
+          <p class="relative mt-1.5 text-sm text-muted">or click anywhere in this area to browse</p>
+
+          <div class="relative mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition group-hover:shadow-indigo-500/40 group-hover:scale-[1.02]">
+            <i data-lucide="file-archive" class="h-4 w-4"></i> Select ZIP file
+          </div>
+
+          <div class="relative mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-muted">
+            <span class="inline-flex items-center gap-1"><i data-lucide="file-type" class="h-3 w-3"></i> .zip format</span>
+            <span class="inline-flex items-center gap-1"><i data-lucide="shield-check" class="h-3 w-3 text-emerald-500"></i> Processed locally</span>
+            <span class="inline-flex items-center gap-1"><i data-lucide="zap" class="h-3 w-3 text-amber-500"></i> Instant results</span>
+          </div>
+        </label>
+
+        <div class="mt-4 flex items-center justify-center">
+          <button id="demoBtn" class="inline-flex items-center gap-2 rounded-full border border-bdr bg-input px-4 py-2 text-xs font-medium text-muted transition hover:border-amber-500/40 hover:text-amber-500 active:scale-95">
+            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-amber-500"></i> Try with a demo ZIP
+          </button>
+        </div>
       </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
-        <span class="text-[11px] text-slate-400 block">Included files</span>
-        <div class="mt-0.5"><span id="stFiles" class="text-sm font-bold text-emerald-400 font-mono">0</span>
-        <span class="text-[11px] text-slate-500 font-mono">/ <span id="stSkipped">0</span> skipped</span></div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
-        <span class="text-[11px] text-slate-400 block">Characters</span>
-        <span id="stChars" class="text-sm font-bold text-indigo-400 font-mono mt-0.5 block">0</span>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
-        <span class="text-[11px] text-slate-400 block">~AI tokens</span>
-        <span id="stTokens" class="text-sm font-bold text-amber-400 font-mono mt-0.5 block">0</span>
-      </div>
-    </div>
 
-    <!-- Mobile tabs -->
-    <div class="grid grid-cols-2 gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl lg:hidden">
-      <button id="tabOut" class="h-11 rounded-lg text-sm font-semibold bg-indigo-600 text-white">Output</button>
-      <button id="tabFiles" class="h-11 rounded-lg text-sm font-semibold text-slate-300">Files <span id="tabCount" class="text-xs opacity-70"></span></button>
-    </div>
+      <!-- Feature cards -->
+      <div class="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl border border-bdr bg-panel p-5 transition hover:border-accent/30">
+          <div class="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-accent/10 border border-accent/20 text-accent">
+            <i data-lucide="filter" class="h-4 w-4"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-main">Smart File Filtering</h4>
+          <p class="mt-1.5 text-xs leading-relaxed text-muted">Automatically skips <span class="font-mono text-accent">node_modules</span>, build folders, lockfiles, binaries, and huge files.</p>
+        </div>
+        <div class="rounded-2xl border border-bdr bg-panel p-5 transition hover:border-violet-500/30">
+          <div class="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-500">
+            <i data-lucide="folder-tree" class="h-4 w-4"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-main">Project Structure</h4>
+          <p class="mt-1.5 text-xs leading-relaxed text-muted">Preserves your folder tree at the top of the output so AI always understands the layout first.</p>
+        </div>
+        <div class="rounded-2xl border border-bdr bg-panel p-5 transition hover:border-emerald-500/30">
+          <div class="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+            <i data-lucide="sparkles" class="h-4 w-4"></i>
+          </div>
+          <h4 class="text-sm font-semibold text-main">AI-Ready Output</h4>
+          <p class="mt-1.5 text-xs leading-relaxed text-muted">Emits a clean Markdown doc with fenced code blocks, line numbers, and copy/download options.</p>
+        </div>
+      </div>
+    </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+    <!-- ===== VIEW: WORKSPACE ===== -->
+    <section id="viewWorkspace" class="hidden flex-col flex-1 min-h-0 gap-4">
+      
+      <!-- Stats -->
+      <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-5 shrink-0">
+        <div class="rounded-2xl border border-bdr bg-panel p-3.5 min-w-0">
+          <div class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            <i data-lucide="package" class="h-3 w-3"></i> Project
+          </div>
+          <div id="stName" class="mt-1.5 truncate font-mono text-sm font-semibold text-main">—</div>
+        </div>
+        <div class="rounded-2xl border border-bdr bg-panel p-3.5">
+          <div class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            <i data-lucide="file-check-2" class="h-3 w-3"></i> Included
+          </div>
+          <div id="stFiles" class="mt-1.5 font-mono text-lg font-bold text-emerald-500">0</div>
+        </div>
+        <div class="rounded-2xl border border-bdr bg-panel p-3.5">
+          <div class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            <i data-lucide="file-x-2" class="h-3 w-3"></i> Skipped
+          </div>
+          <div id="stSkipped" class="mt-1.5 font-mono text-lg font-bold text-rose-500">0</div>
+        </div>
+        <div class="rounded-2xl border border-bdr bg-panel p-3.5">
+          <div class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            <i data-lucide="type" class="h-3 w-3"></i> Characters
+          </div>
+          <div id="stChars" class="mt-1.5 font-mono text-lg font-bold text-sky-500">0</div>
+        </div>
+        <div class="rounded-2xl border border-bdr bg-panel p-3.5 col-span-2 sm:col-span-1">
+          <div class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            <i data-lucide="coins" class="h-3 w-3"></i> ~AI Tokens
+          </div>
+          <div id="stTokens" class="mt-1.5 font-mono text-lg font-bold text-amber-500">0</div>
+        </div>
+      </div>
 
-      <!-- Files panel -->
-      <div id="panelFiles" class="panel-hidden lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl flex-col h-[70vh] lg:h-[620px] overflow-hidden">
-        <div class="p-3 border-b border-slate-800 flex items-center justify-between">
-          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-300">Select files</h3>
-          <div class="flex items-center">
-            <button id="selAll" class="h-9 px-3 text-xs text-indigo-400 font-medium">All</button>
-            <span class="text-slate-600">|</span>
-            <button id="selNone" class="h-9 px-3 text-xs text-slate-300 font-medium">None</button>
+      <!-- Mobile tabs -->
+      <div class="grid grid-cols-2 gap-1 rounded-2xl border border-bdr bg-panel p-1 lg:hidden shrink-0">
+        <button id="tabOut" class="h-10 rounded-xl text-sm font-semibold transition flex items-center justify-center">Output</button>
+        <button id="tabFiles" class="h-10 rounded-xl text-sm font-semibold transition flex items-center justify-center">Files <span id="tabCount" class="text-xs opacity-60 ml-1"></span></button>
+      </div>
+
+      <!-- Split layout -->
+      <div id="workspace" class="flex-1 min-h-0 lg:grid lg:grid-cols-[340px_1fr] gap-4 items-start w-full">
+        
+        <!-- File Explorer -->
+        <div id="panelFiles" class="hidden lg:flex flex-col overflow-hidden rounded-2xl border border-bdr bg-panel h-[calc(100dvh-320px)] lg:h-full">
+          <div class="flex items-center justify-between border-b border-bdr px-3.5 py-3 shrink-0">
+            <div class="flex items-center gap-2">
+              <i data-lucide="folder-tree" class="h-3.5 w-3.5 text-accent"></i>
+              <h3 class="text-[11px] font-semibold uppercase tracking-wider text-muted">Explorer</h3>
+            </div>
+            <div class="flex items-center gap-1">
+              <button id="selAll" class="rounded-lg px-2.5 py-1 text-[11px] font-medium text-accent transition hover:bg-accent/10">All</button>
+              <span class="text-muted/30">·</span>
+              <button id="selNone" class="rounded-lg px-2.5 py-1 text-[11px] font-medium text-muted transition hover:bg-input">None</button>
+            </div>
+          </div>
+
+          <div class="border-b border-bdr bg-base/40 p-2.5 shrink-0">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"></i>
+              <input type="text" id="search" placeholder="Search files…" autocapitalize="off" autocorrect="off" spellcheck="false"
+                class="h-10 w-full rounded-xl border border-bdr bg-input pl-9 pr-3 font-mono text-xs text-main placeholder-muted transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20">
+            </div>
+          </div>
+
+          <div id="checklist" class="flex-1 overflow-y-auto scroll-panel p-1.5 font-mono text-[12.5px]"></div>
+
+          <div class="flex items-center justify-between border-t border-bdr bg-base/50 px-3 py-2 text-[11px] shrink-0">
+            <span class="text-muted">Uncheck to exclude</span>
+            <button id="viewSkipped" class="rounded-lg px-2 py-1 font-medium text-accent transition hover:bg-accent/10">Skipped →</button>
           </div>
         </div>
-        <div class="p-2.5 border-b border-slate-800 bg-slate-950/50">
-          <div class="relative">
-            <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="text" id="search" placeholder="Filter by name or path..." autocapitalize="off" autocorrect="off" spellcheck="false"
-              class="w-full h-11 bg-slate-900 border border-slate-800 rounded-lg pl-9 pr-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono">
+
+        <!-- Output Preview -->
+        <div id="panelOut" class="flex flex-col overflow-hidden rounded-2xl border border-bdr bg-panel h-[calc(100dvh-320px)] lg:h-full w-full">
+          <div class="flex items-center justify-between gap-2 border-b border-bdr px-3.5 py-3 shrink-0">
+            <div class="flex min-w-0 items-center gap-2">
+              <span class="h-2 w-2 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
+              <h3 class="truncate text-[11px] font-semibold uppercase tracking-wider text-muted">Output Preview</h3>
+            </div>
+            <div class="hidden sm:flex items-center gap-1.5">
+              <button data-act="copy" class="copyBtn inline-flex items-center gap-1.5 rounded-lg bg-accent/10 px-2.5 py-1.5 text-[11px] font-semibold text-accent border border-accent/20 transition hover:bg-accent/20 active:scale-95">
+                <i data-lucide="copy" class="h-3 w-3"></i><span class="copyTxt">Copy</span>
+              </button>
+              <button data-act="txt" class="inline-flex items-center gap-1.5 rounded-lg bg-input px-2.5 py-1.5 text-[11px] font-semibold text-muted border border-bdr transition hover:bg-bdr hover:text-main active:scale-95">
+                <i data-lucide="download" class="h-3 w-3 text-sky-500"></i>.TXT
+              </button>
+              <button data-act="md" class="inline-flex items-center gap-1.5 rounded-lg bg-input px-2.5 py-1.5 text-[11px] font-semibold text-muted border border-bdr transition hover:bg-bdr hover:text-main active:scale-95">
+                <i data-lucide="file-code" class="h-3 w-3 text-emerald-500"></i>.MD
+              </button>
+            </div>
+            <div class="flex sm:hidden items-center gap-1">
+              <button data-act="copy" class="copyBtn grid h-8 w-8 place-items-center rounded-lg bg-accent/10 border border-accent/20 text-accent"><i data-lucide="copy" class="h-3.5 w-3.5"></i></button>
+              <button data-act="txt" class="grid h-8 w-8 place-items-center rounded-lg bg-input border border-bdr text-muted"><i data-lucide="download" class="h-3.5 w-3.5"></i></button>
+              <button data-act="md" class="grid h-8 w-8 place-items-center rounded-lg bg-input border border-bdr text-muted"><i data-lucide="file-code" class="h-3.5 w-3.5"></i></button>
+            </div>
           </div>
-        </div>
-        <div id="checklist" class="flex-1 overflow-y-auto p-1.5 font-mono text-[13px]"></div>
-        <div class="p-2 border-t border-slate-800 bg-slate-950/80 text-[11px] text-slate-400 flex items-center justify-between">
-          <span>Uncheck karo to file output se hat jayegi</span>
-          <button id="viewSkipped" class="h-9 px-2 text-indigo-400">View skipped</button>
+
+          <textarea id="output" readonly spellcheck="false" wrap="off"
+            class="w-full flex-1 resize-none bg-input p-4 font-mono text-[11.5px] leading-relaxed text-main placeholder-muted selection:bg-accent/30"
+            placeholder="Your flattened output will appear here…"></textarea>
         </div>
       </div>
 
-      <!-- Output panel -->
-      <div id="panelOut" class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[70vh] lg:h-[620px] overflow-hidden">
-        <div class="p-3 border-b border-slate-800 flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2 min-w-0">
-            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-300 truncate">Single-file output</h3>
-          </div>
-          <span class="text-[11px] text-slate-400 bg-slate-800 px-2 py-1 rounded-md font-mono whitespace-nowrap">Tree → Code</span>
-        </div>
-        <textarea id="output" readonly spellcheck="false" wrap="off"
-          class="w-full flex-1 bg-slate-950 text-slate-200 font-mono text-xs leading-relaxed p-3 focus:outline-none resize-none selection:bg-indigo-500/40"
-          placeholder="Output yahan aayega..."></textarea>
+      <!-- Desktop action bar -->
+      <div class="hidden lg:flex items-center justify-end gap-2 shrink-0">
+        <button data-act="txt" class="inline-flex h-11 items-center gap-2 rounded-xl border border-bdr bg-input px-4 text-sm font-medium text-muted transition hover:border-muted hover:text-main active:scale-95">
+          <i data-lucide="download" class="h-4 w-4 text-sky-500"></i>Download .TXT
+        </button>
+        <button data-act="md" class="inline-flex h-11 items-center gap-2 rounded-xl border border-bdr bg-input px-4 text-sm font-medium text-muted transition hover:border-muted hover:text-main active:scale-95">
+          <i data-lucide="file-code" class="h-4 w-4 text-emerald-500"></i>Download .MD
+        </button>
+        <button data-act="copy" class="copyBtn inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:shadow-indigo-500/40 active:scale-95">
+          <i data-lucide="copy" class="h-4 w-4"></i><span class="copyTxt">Copy full AI prompt</span>
+        </button>
       </div>
-    </div>
+    </section>
+  </main>
+</div>
 
-    <!-- Desktop action bar -->
-    <div class="hidden lg:flex items-center justify-end gap-2.5">
-      <button data-act="copy" class="inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm"><i data-lucide="copy" class="w-4 h-4"></i><span class="copyTxt">Copy full AI prompt</span></button>
-      <button data-act="txt" class="inline-flex items-center gap-2 px-4 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-sm font-medium"><i data-lucide="download" class="w-4 h-4 text-sky-400"></i>.TXT</button>
-      <button data-act="md" class="inline-flex items-center gap-2 px-4 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-sm font-medium"><i data-lucide="file-code" class="w-4 h-4 text-emerald-400"></i>.MD</button>
-    </div>
-  </section>
-</main>
-
-<!-- Mobile sticky action bar -->
-<div id="mobileBar" class="hidden fixed bottom-0 inset-x-0 z-40 lg:hidden bg-slate-900/95 backdrop-blur border-t border-slate-800 px-3 pt-2.5" style="padding-bottom: calc(env(safe-area-inset-bottom) + 10px)">
+<!-- Mobile bottom action bar -->
+<div id="mobileBar" class="hidden fixed inset-x-0 bottom-0 z-40 border-t border-bdr bg-panel/95 px-3 pt-2.5 backdrop-blur-xl lg:hidden" style="padding-bottom: calc(env(safe-area-inset-bottom) + 10px)">
   <div class="flex gap-2">
-    <button data-act="copy" class="flex-1 h-12 rounded-xl bg-indigo-600 active:bg-indigo-700 text-white font-semibold text-sm flex items-center justify-center gap-2"><i data-lucide="copy" class="w-4 h-4"></i><span class="copyTxt">Copy All</span></button>
-    <button data-act="txt" class="w-20 h-12 rounded-xl bg-slate-800 active:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm">.TXT</button>
-    <button data-act="md" class="w-20 h-12 rounded-xl bg-slate-800 active:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-sm">.MD</button>
+    <button data-act="copy" class="copyBtn flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 active:scale-95">
+      <i data-lucide="copy" class="h-4 w-4"></i><span class="copyTxt">Copy All</span>
+    </button>
+    <button data-act="txt" class="h-12 w-20 rounded-xl border border-bdr bg-input text-sm font-semibold text-muted active:scale-95">.TXT</button>
+    <button data-act="md" class="h-12 w-20 rounded-xl border border-bdr bg-input text-sm font-semibold text-muted active:scale-95">.MD</button>
   </div>
 </div>
 
-<!-- Skipped modal -->
-<div id="skipModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center sm:p-4">
-  <div class="bg-slate-900 border border-slate-800 sm:rounded-2xl rounded-t-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
-    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-      <div class="flex items-center gap-2"><i data-lucide="eye-off" class="w-4 h-4 text-rose-400"></i><h3 class="text-sm font-semibold text-white">Skipped files</h3></div>
-      <button id="skipClose" class="w-10 h-10 flex items-center justify-center text-slate-400 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+<!-- ============ SETTINGS MODAL ============ -->
+<div id="settingsModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-close-settings></div>
+  <div class="modal-panel anim-scale relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-bdr bg-panel shadow-2xl">
+    <div class="flex items-start justify-between gap-3 border-b border-bdr p-5">
+      <div class="min-w-0">
+        <h2 class="flex items-center gap-2 text-sm font-semibold text-main">
+          <i data-lucide="sliders-horizontal" class="h-4 w-4 text-accent"></i> Settings
+        </h2>
+        <p class="mt-1 text-[11.5px] text-muted">Customize appearance and output formatting.</p>
+      </div>
+      <button data-close-settings class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-input hover:text-main">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
     </div>
-    <div id="skipList" class="p-4 overflow-y-auto font-mono text-xs text-slate-400 space-y-2 flex-1"></div>
+
+    <div class="flex-1 space-y-1 overflow-y-auto p-4">
+      
+      <!-- Theme Selector -->
+      <div class="mb-4">
+        <h4 class="mb-2 px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted">Appearance</h4>
+        <div class="grid grid-cols-3 gap-2 px-3">
+          <button data-set-theme="extra-dark" class="theme-btn">
+            <div class="theme-preview extra-dark"></div>
+            <span class="text-[11px] font-medium text-muted">Extra Dark</span>
+          </button>
+          <button data-set-theme="dark" class="theme-btn">
+            <div class="theme-preview dark"></div>
+            <span class="text-[11px] font-medium text-muted">Dark</span>
+          </button>
+          <button data-set-theme="light" class="theme-btn">
+            <div class="theme-preview light"></div>
+            <span class="text-[11px] font-medium text-muted">Light</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="my-2 h-px bg-bdr"></div>
+
+      <h4 class="mb-1 px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted">Filters &amp; Format</h4>
+
+      <label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-input">
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] font-medium text-main">Ignore heavy/build folders</div>
+          <div class="mt-0.5 truncate font-mono text-[10.5px] text-muted">node_modules, .git, dist, build, vendor…</div>
+        </div>
+        <input type="checkbox" id="optJunk" checked class="toggle sr-only">
+        <span class="switch"></span>
+      </label>
+
+      <label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-input">
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] font-medium text-main">Skip lockfiles</div>
+          <div class="mt-0.5 truncate font-mono text-[10.5px] text-muted">package-lock.json, yarn.lock…</div>
+        </div>
+        <input type="checkbox" id="optLock" checked class="toggle sr-only">
+        <span class="switch"></span>
+      </label>
+
+      <label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-input">
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] font-medium text-main">Ignore hidden dotfiles</div>
+          <div class="mt-0.5 truncate font-mono text-[10.5px] text-muted">.env, .gitignore, .eslintrc…</div>
+        </div>
+        <input type="checkbox" id="optDot" class="toggle sr-only">
+        <span class="switch"></span>
+      </label>
+
+      <label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-input">
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] font-medium text-main">Markdown code fences</div>
+          <div class="mt-0.5 text-[10.5px] text-muted">Each file becomes a fenced code block</div>
+        </div>
+        <input type="checkbox" id="optFence" checked class="toggle sr-only">
+        <span class="switch"></span>
+      </label>
+
+      <label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-input">
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] font-medium text-main">Add line numbers</div>
+          <div class="mt-0.5 text-[10.5px] text-muted">Useful for bug and line references</div>
+        </div>
+        <input type="checkbox" id="optLineNo" class="toggle sr-only">
+        <span class="switch"></span>
+      </label>
+
+      <div class="pt-3 px-3">
+        <label class="mb-1.5 block text-[10.5px] font-semibold uppercase tracking-wider text-muted">Custom ignore rules</label>
+        <input type="text" id="optCustom" value=".min.js, .min.css, .map, .svg" autocapitalize="off" autocorrect="off" spellcheck="false"
+          class="h-11 w-full rounded-xl border border-bdr bg-input px-3 font-mono text-xs text-main placeholder-muted transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+          placeholder=".svg, .map, .log">
+        <p class="mt-1.5 text-[10.5px] text-muted">Comma-separated. Matches file endings or exact names.</p>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-2 border-t border-bdr bg-base/40 p-4 shrink-0">
+      <button data-close-settings class="h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:shadow-indigo-500/40 active:scale-95">
+        Done
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SKIPPED FILES MODAL ============ -->
+<div id="skipModal" class="fixed inset-0 z-50 hidden items-end justify-center p-0 sm:items-center sm:p-4">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-close-skip></div>
+  <div class="anim-slide relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-bdr bg-panel shadow-2xl sm:rounded-2xl">
+    <div class="flex items-center justify-between border-b border-bdr p-4 shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="grid h-8 w-8 place-items-center rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500">
+          <i data-lucide="eye-off" class="h-4 w-4"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-main">Skipped Files</h3>
+          <p class="text-[11px] text-muted">Files excluded from the output</p>
+        </div>
+      </div>
+      <button data-close-skip class="grid h-9 w-9 place-items-center rounded-lg text-muted transition hover:bg-input hover:text-main">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+    </div>
+    <div id="skipList" class="flex-1 space-y-2 overflow-y-auto p-4 font-mono text-xs"></div>
   </div>
 </div>
 
 <!-- Toast -->
-<div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-24 lg:bottom-8 z-50 hidden px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium shadow-lg"></div>
+<div id="toast" class="fixed bottom-24 left-1/2 z-[70] hidden -translate-x-1/2 rounded-full bg-panel border border-bdr px-5 py-2.5 text-sm font-semibold text-main shadow-2xl lg:bottom-8"></div>
 
 <script>
 const $ = id => document.getElementById(id);
-const state = { zipName: '', all: [], files: [], skipped: [], excluded: new Set(), collapsed: new Set(), loaded: false };
+const state = {
+  zipName: '', rootName: '', all: [], files: [], skipped: [],
+  excluded: new Set(), collapsed: new Set(), loaded: false, view: 'overview'
+};
 
 const BIN_EXT = new Set(['png','jpg','jpeg','gif','webp','ico','bmp','tiff','mp3','wav','ogg','mp4','mov','avi','mkv','webm','pdf','zip','rar','7z','gz','tar','woff','woff2','ttf','otf','eot','exe','dll','so','dylib','bin','class','jar','pyc','o','a','apk','ipa','db','sqlite','psd','ai','doc','docx','xls','xlsx','ppt','pptx']);
 const JUNK = ['node_modules','.git','dist','build','.next','__pycache__','vendor','.idea','.vscode','venv','.venv','coverage','.cache'];
@@ -241,18 +701,130 @@ const MAX_BYTES = 1024 * 1024;
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtSize = n => n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KB';
 const tick = () => new Promise(r => setTimeout(r, 0));
-const icons = () => { try { lucide.createIcons(); } catch (e) {} };
+const icons = () => { try { lucide.createIcons(); } catch(e) {} };
 
-function toast(msg) {
-  const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add('hidden'), 1800);
+/* ==================== THEMES ==================== */
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('zip-ai-theme', theme);
+  
+  // Update theme buttons UI
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    const active = btn.dataset.setTheme === theme;
+    btn.classList.toggle('active', active);
+  });
 }
 
-/* ---------- Upload ---------- */
+// Initialize Theme
+const savedTheme = localStorage.getItem('zip-ai-theme') || 'dark';
+applyTheme(savedTheme);
+
+// Theme buttons listener
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyTheme(btn.dataset.setTheme));
+});
+
+/* ==================== TOAST ==================== */
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.add('hidden'), 2000);
+}
+
+/* ==================== VIEWS ==================== */
+function showView(name) {
+  state.view = name;
+  const ov = $('viewOverview'), ws = $('viewWorkspace'), ld = $('loading');
+  if (ov) ov.classList.toggle('hidden', name !== 'overview');
+  if (ws) { 
+    ws.classList.toggle('hidden', name !== 'workspace'); 
+    ws.classList.toggle('flex', name === 'workspace'); 
+  }
+  if (ld) ld.classList.add('hidden');
+
+  document.querySelectorAll('[data-nav]').forEach(el => {
+    if (el.dataset.nav === 'settings') return;
+    el.classList.toggle('nav-active', el.dataset.nav === name);
+  });
+
+  const titles = { overview: 'Overview', workspace: 'Workspace' };
+  if ($('pageTitle')) $('pageTitle').textContent = titles[name] || 'Overview';
+
+  if (name === 'workspace') {
+    $('mobileBar').classList.remove('hidden');
+    // Ensure the initial tab state is set correctly
+    setTab('out');
+  } else {
+    $('mobileBar').classList.add('hidden');
+  }
+}
+
+/* Sidebar mobile open/close */
+function openSidebar() {
+  $('sidebar').classList.add('open');
+  $('sidebarOverlay').classList.add('open');
+}
+function closeSidebar() {
+  $('sidebar').classList.remove('open');
+  $('sidebarOverlay').classList.remove('open');
+}
+
+$('sidebarToggle')?.addEventListener('click', openSidebar);
+$('sidebarOverlay')?.addEventListener('click', closeSidebar);
+
+/* Sidebar collapse (desktop) */
+$('sidebarCollapse')?.addEventListener('click', () => {
+  const sb = $('sidebar');
+  sb.classList.toggle('collapsed');
+  const icon = $('sidebarCollapse').querySelector('[data-lucide]');
+  if (icon) {
+    icon.setAttribute('data-lucide', sb.classList.contains('collapsed') ? 'panel-left-open' : 'panel-left-close');
+    icons();
+  }
+});
+
+/* Nav items */
+document.querySelectorAll('[data-nav]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const nav = btn.dataset.nav;
+    if (nav === 'settings') { openSettings(); closeSidebar(); return; }
+    if (nav === 'workspace') {
+      if (!state.loaded) { toast('Upload a ZIP file first'); return; }
+      showView('workspace'); closeSidebar(); return;
+    }
+    if (nav === 'overview') { showView('overview'); closeSidebar(); return; }
+    closeSidebar();
+  });
+});
+
+/* Skipped from sidebar */
+$('navSkipped')?.addEventListener('click', () => {
+  if (!state.loaded) { toast('Upload a ZIP file first'); return; }
+  openSkipped(); closeSidebar();
+});
+
+/* Top settings button */
+$('settingsTopBtn')?.addEventListener('click', openSettings);
+
+/* ==================== SETTINGS MODAL ==================== */
+function openSettings() {
+  $('settingsModal').classList.remove('hidden');
+  $('settingsModal').classList.add('flex');
+  icons();
+}
+function closeSettings() {
+  $('settingsModal').classList.add('hidden');
+  $('settingsModal').classList.remove('flex');
+}
+document.querySelectorAll('[data-close-settings]').forEach(el => el.addEventListener('click', closeSettings));
+
+/* ==================== UPLOAD ==================== */
 $('zipInput').addEventListener('change', e => { if (e.target.files[0]) handleZip(e.target.files[0]); });
 const dz = $('dropZone');
-['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drop-active'); }));
-['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drop-active'); }));
+['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('dz-active'); }));
+['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('dz-active'); }));
 dz.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleZip(f); });
 $('demoBtn').onclick = loadDemo;
 $('resetBtn').onclick = resetApp;
@@ -264,7 +836,8 @@ async function handleZip(file) {
     await loadFromZip(zip, file.name);
   } catch (err) {
     showLoading(false);
-    alert('ZIP nahi khul paya: ' + err.message);
+    alert("Couldn't open the ZIP: " + err.message);
+    showView('overview');
   }
 }
 
@@ -289,14 +862,19 @@ async function loadFromZip(zip, name) {
   state.excluded = new Set();
   state.collapsed = new Set();
   state.loaded = true;
+
   applyFilters();
   showLoading(false);
-  $('uploadSection').classList.add('hidden');
-  $('workspace').classList.remove('hidden'); $('workspace').classList.add('flex');
-  $('resetBtn').classList.remove('hidden'); $('resetBtn').classList.add('flex');
-  $('mobileBar').classList.remove('hidden');
+  showView('workspace');
+
   $('stName').textContent = name;
-  setTab('out');
+  $('resetBtn').classList.remove('hidden');
+  $('resetBtn').classList.add('flex');
+  const tn = $('topProjectName');
+  if (tn) { tn.classList.remove('hidden'); tn.classList.add('inline-flex'); tn.querySelector('span').textContent = name; }
+
+  document.querySelectorAll('[data-nav="workspace"]').forEach(el => el.disabled = false);
+
   renderChecklist();
   generate();
   icons();
@@ -305,19 +883,30 @@ async function loadFromZip(zip, name) {
 
 function showLoading(on, sub) {
   $('loading').classList.toggle('hidden', !on);
-  if (on) { $('loadingSub').textContent = sub || ''; $('uploadSection').classList.add('hidden'); }
+  if (on) {
+    $('loadingSub').textContent = sub || '';
+    $('viewOverview').classList.add('hidden');
+    $('viewWorkspace').classList.add('hidden');
+    $('viewWorkspace').classList.remove('flex');
+  }
 }
 
 function resetApp() {
   state.all = []; state.files = []; state.skipped = []; state.loaded = false;
-  $('zipInput').value = ''; $('output').value = '';
-  $('workspace').classList.add('hidden'); $('workspace').classList.remove('flex');
-  $('resetBtn').classList.add('hidden'); $('resetBtn').classList.remove('flex');
-  $('mobileBar').classList.add('hidden');
-  $('uploadSection').classList.remove('hidden');
+  state.excluded = new Set(); state.collapsed = new Set();
+  $('zipInput').value = '';
+  $('output').value = '';
+  showView('overview');
+  $('resetBtn').classList.add('hidden');
+  $('resetBtn').classList.remove('flex');
+  const tn = $('topProjectName');
+  if (tn) { tn.classList.add('hidden'); tn.classList.remove('inline-flex'); }
+  document.querySelectorAll('[data-nav="workspace"]').forEach(el => el.disabled = true);
+  if ($('stName')) $('stName').textContent = '—';
+  ['stFiles','stSkipped','stChars','stTokens'].forEach(id => { if ($(id)) $(id).textContent = '0'; });
 }
 
-/* ---------- Filtering ---------- */
+/* ==================== FILTERING ==================== */
 function applyFilters() {
   const junk = $('optJunk').checked, lock = $('optLock').checked, dot = $('optDot').checked;
   const custom = $('optCustom').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
@@ -354,7 +943,7 @@ function reprocess() {
   applyFilters(); renderChecklist(); generate();
 }
 
-/* ---------- Checklist ---------- */
+/* ==================== FILE TREE ==================== */
 function buildTree(paths) {
   const root = {};
   for (const p of paths) {
@@ -369,12 +958,32 @@ const sortedNames = node => Object.keys(node).sort((a, b) => {
   return a.localeCompare(b);
 });
 
+function fileColor(name) {
+  const ext = (name.includes('.') ? name.split('.').pop() : '').toLowerCase();
+  const map = {
+    js:'#fbbf24', mjs:'#fbbf24', cjs:'#fbbf24', jsx:'#fbbf24',
+    ts:'#60a5fa', tsx:'#60a5fa',
+    html:'#fb923c', htm:'#fb923c', vue:'#10b981', svelte:'#fb923c',
+    css:'#f472b6', scss:'#f472b6', sass:'#f472b6', less:'#f472b6',
+    json:'#34d399', md:'#94a3b8',
+    py:'#22d3ee', sh:'#10b981', bash:'#10b981',
+    sql:'#a78bfa', yml:'#f43f5e', yaml:'#f43f5e',
+    go:'#22d3ee', rs:'#fb923c', rb:'#f43f5e', php:'#a78bfa',
+    java:'#fbbf24', kt:'#a78bfa', swift:'#fb923c', c:'#60a5fa', h:'#60a5fa', cpp:'#60a5fa'
+  };
+  return map[ext] || '#64748b';
+}
+
 function fileRow(path, label, depth, size) {
   const checked = !state.excluded.has(path) ? 'checked' : '';
-  return `<label class="flex items-center gap-2.5 min-h-[44px] pr-2 rounded-lg active:bg-slate-800 cursor-pointer" style="padding-left:${8 + depth * 14}px">
-    <input type="checkbox" class="w-5 h-5 shrink-0" data-file="${esc(path)}" ${checked}>
-    <span class="flex-1 min-w-0 break-all text-slate-200">📄 ${esc(label)}</span>
-    <span class="text-[10px] text-slate-500 shrink-0">${fmtSize(size)}</span></label>`;
+  const ext = (label.includes('.') ? label.split('.').pop() : '').toUpperCase().slice(0, 4) || 'FILE';
+  const c = fileColor(label);
+  return `<label class="group flex min-h-[36px] cursor-pointer items-center gap-2 rounded-lg pr-2 pl-1 transition hover:bg-input active:bg-bdr" style="margin-left:${depth * 14}px">
+    <input type="checkbox" class="tree-check" data-file="${esc(path)}" ${checked}>
+    <span class="file-badge" style="color:${c};background:${c}1a;border-color:${c}33">${ext}</span>
+    <span class="min-w-0 flex-1 truncate text-main group-hover:text-accent">${esc(label)}</span>
+    <span class="shrink-0 text-[10px] text-muted group-hover:text-main">${fmtSize(size)}</span>
+  </label>`;
 }
 
 function treeHtml(node, prefix, depth) {
@@ -389,10 +998,15 @@ function treeHtml(node, prefix, depth) {
       const on = kids.filter(x => !state.excluded.has(x.path)).length;
       const st = on === 0 ? 'none' : on === kids.length ? 'all' : 'some';
       const open = !state.collapsed.has(path);
-      html += `<div class="flex items-center gap-2.5 min-h-[44px] pr-2 rounded-lg" style="padding-left:${8 + depth * 14}px">
-        <input type="checkbox" class="w-5 h-5 shrink-0" data-dir="${esc(path)}" data-st="${st}" ${st === 'all' ? 'checked' : ''}>
-        <button class="flex-1 min-w-0 h-11 text-left break-all text-sky-300 font-medium" data-collapse="${esc(path)}">${open ? '📂' : '📁'} ${esc(name)}/
-          <span class="text-[10px] text-slate-500 font-normal">${on}/${kids.length}</span></button></div>`;
+      html += `<div class="flex min-h-[36px] items-center gap-1 rounded-lg pr-2 pl-1 transition hover:bg-input" style="margin-left:${depth * 14}px">
+        <input type="checkbox" class="tree-check" data-dir="${esc(path)}" data-st="${st}" ${st === 'all' ? 'checked' : ''}>
+        <button class="flex min-w-0 flex-1 items-center gap-1.5 py-1.5 text-left" data-collapse="${esc(path)}">
+          <i data-lucide="${open ? 'chevron-down' : 'chevron-right'}" class="h-3.5 w-3.5 shrink-0 text-muted"></i>
+          <i data-lucide="${open ? 'folder-open' : 'folder'}" class="h-3.5 w-3.5 shrink-0 text-accent"></i>
+          <span class="min-w-0 flex-1 truncate font-medium text-main">${esc(name)}</span>
+          <span class="shrink-0 text-[10px] text-muted">${on}/${kids.length}</span>
+        </button>
+      </div>`;
       if (open) html += treeHtml(node[name], path + '/', depth + 1);
     }
   }
@@ -403,11 +1017,19 @@ function renderChecklist() {
   const box = $('checklist'), top = box.scrollTop;
   const q = $('search').value.trim().toLowerCase();
   let html = '';
-  if (q) state.files.filter(f => f.path.toLowerCase().includes(q)).forEach(f => html += fileRow(f.path, f.path, 0, f.size));
-  else html = treeHtml(buildTree(state.files.map(f => f.path)), '', 0);
-  box.innerHTML = html || '<div class="p-4 text-slate-500 text-center">Koi file nahi mili</div>';
+  if (q) {
+    const matches = state.files.filter(f => f.path.toLowerCase().includes(q));
+    html = matches.length
+      ? matches.map(f => fileRow(f.path, f.path, 0, f.size)).join('')
+      : '<div class="flex flex-col items-center gap-2 p-10 text-center"><i data-lucide="search-x" class="h-8 w-8 text-muted"></i><p class="text-xs text-muted">No files match</p></div>';
+  } else {
+    html = treeHtml(buildTree(state.files.map(f => f.path)), '', 0)
+      || '<div class="flex flex-col items-center gap-2 p-10 text-center"><i data-lucide="folder-open" class="h-8 w-8 text-muted"></i><p class="text-xs text-muted">No files to display</p></div>';
+  }
+  box.innerHTML = html;
   box.querySelectorAll('input[data-st="some"]').forEach(i => i.indeterminate = true);
   box.scrollTop = top;
+  icons();
 }
 
 $('checklist').addEventListener('change', e => {
@@ -430,7 +1052,7 @@ $('search').addEventListener('input', renderChecklist);
 $('selAll').onclick = () => { state.excluded.clear(); renderChecklist(); generate(); };
 $('selNone').onclick = () => { state.files.forEach(f => state.excluded.add(f.path)); renderChecklist(); generate(); };
 
-/* ---------- Output ---------- */
+/* ==================== OUTPUT ==================== */
 function renderTree(node, prefix = '') {
   let out = '';
   const names = sortedNames(node);
@@ -480,26 +1102,35 @@ function generate() {
   $('tabCount').textContent = '(' + sel.length + ')';
 }
 
-/* ---------- Actions ---------- */
+/* ==================== ACTIONS ==================== */
 async function copyOut() {
   const text = $('output').value;
-  if (!text) return;
+  if (!text) { toast('Nothing to copy yet'); return; }
   let ok = false;
   try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
-  if (!ok) { const ta = $('output'); ta.removeAttribute('readonly'); ta.select(); ta.setSelectionRange(0, text.length); try { ok = document.execCommand('copy'); } catch (e) {} ta.setAttribute('readonly', ''); }
-  toast(ok ? '✅ Copied!' : 'Copy fail, textarea se manually select karo');
-  document.querySelectorAll('.copyTxt').forEach(s => { const o = s.textContent; s.textContent = ok ? 'Copied!' : o; setTimeout(() => s.textContent = o, 1500); });
+  if (!ok) {
+    const ta = $('output');
+    ta.removeAttribute('readonly'); ta.select(); ta.setSelectionRange(0, text.length);
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    ta.setAttribute('readonly', '');
+  }
+  toast(ok ? '✓ Copied to clipboard' : 'Copy failed — select manually');
+  document.querySelectorAll('.copyTxt').forEach(s => {
+    const o = s.textContent;
+    s.textContent = ok ? 'Copied!' : o;
+    setTimeout(() => s.textContent = o, 1500);
+  });
 }
 
 function download(ext) {
-  const text = $('output').value; if (!text) return;
+  const text = $('output').value; if (!text) { toast('Nothing to download yet'); return; }
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = (state.rootName || 'project') + '_flattened.' + ext;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  toast('⬇️ Download shuru');
+  toast('Download started');
 }
 
 document.addEventListener('click', e => {
@@ -508,33 +1139,61 @@ document.addEventListener('click', e => {
   if (a === 'copy') copyOut(); else download(a);
 });
 
-/* ---------- Tabs (mobile) ---------- */
+/* ==================== TABS & MOBILE VISIBILITY ==================== */
 function setTab(t) {
-  const out = t === 'out';
-  $('panelOut').classList.toggle('panel-hidden', !out);
-  $('panelFiles').classList.toggle('panel-hidden', out);
-  $('tabOut').className = 'h-11 rounded-lg text-sm font-semibold ' + (out ? 'bg-indigo-600 text-white' : 'text-slate-300');
-  $('tabFiles').className = 'h-11 rounded-lg text-sm font-semibold ' + (!out ? 'bg-indigo-600 text-white' : 'text-slate-300');
+  const isOut = t === 'out';
+  const files = $('panelFiles'), out = $('panelOut');
+  
+  // Tab Styling
+  $('tabOut').className = `h-10 rounded-xl text-sm font-semibold transition flex items-center justify-center ${isOut ? 'bg-accent text-white shadow-md' : 'text-muted hover:text-main'}`;
+  $('tabFiles').className = `h-10 rounded-xl text-sm font-semibold transition flex items-center justify-center ${!isOut ? 'bg-accent text-white shadow-md' : 'text-muted hover:text-main'}`;
+
+  // Panel Visibility (Mobile vs Desktop)
+  // We strictly toggle the `hidden` class. `lg:flex` on the panels ensures they 
+  // remain visible on desktop regardless of the mobile tab state.
+  if (isOut) {
+    files.classList.add('hidden');
+    files.classList.remove('flex');
+    out.classList.remove('hidden');
+    out.classList.add('flex');
+  } else {
+    files.classList.remove('hidden');
+    files.classList.add('flex');
+    out.classList.add('hidden');
+    out.classList.remove('flex');
+  }
 }
 $('tabOut').onclick = () => setTab('out');
 $('tabFiles').onclick = () => setTab('files');
 
-/* ---------- Skipped modal ---------- */
+/* ==================== SKIPPED MODAL ==================== */
 function openSkipped() {
   const list = $('skipList');
   list.innerHTML = state.skipped.length
-    ? state.skipped.map(s => `<div class="break-all"><span class="text-slate-300">${esc(s.path)}</span><br><span class="text-rose-400/80">${esc(s.reason)}</span></div>`).join('')
-    : '<div class="text-slate-500">Kuch skip nahi hua.</div>';
-  $('skipModal').classList.remove('hidden'); $('skipModal').classList.add('flex');
+    ? state.skipped.map(s => `<div class="rounded-lg border border-bdr bg-input p-3">
+        <div class="flex items-start gap-2">
+          <i data-lucide="file-x" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-500"></i>
+          <div class="min-w-0">
+            <div class="break-all text-main">${esc(s.path)}</div>
+            <div class="mt-1 inline-flex items-center gap-1 rounded border border-rose-500/20 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-medium text-rose-500">${esc(s.reason)}</div>
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="flex flex-col items-center gap-3 p-10 text-center"><i data-lucide="sparkles" class="h-8 w-8 text-emerald-500/60"></i><p class="text-xs text-muted">No files were skipped</p></div>';
+  $('skipModal').classList.remove('hidden');
+  $('skipModal').classList.add('flex');
+  icons();
 }
-function closeSkipped() { $('skipModal').classList.add('hidden'); $('skipModal').classList.remove('flex'); }
+function closeSkipped() {
+  $('skipModal').classList.add('hidden');
+  $('skipModal').classList.remove('flex');
+}
 $('viewSkipped').onclick = openSkipped;
-$('skipClose').onclick = closeSkipped;
-$('skipModal').addEventListener('click', e => { if (e.target === $('skipModal')) closeSkipped(); });
+document.querySelectorAll('[data-close-skip]').forEach(el => el.addEventListener('click', closeSkipped));
 
-/* ---------- Demo ---------- */
+/* ==================== DEMO ==================== */
 async function loadDemo() {
-  showLoading(true, 'Demo project bana raha hoon...');
+  showLoading(true, 'Creating demo project…');
   const z = new JSZip();
   z.file('demo-app/package.json', '{\n  "name": "demo-app",\n  "version": "1.0.0",\n  "scripts": { "start": "node src/index.js" }\n}\n');
   z.file('demo-app/README.md', '# Demo App\n\nSmall sample project.\n');
@@ -549,7 +1208,9 @@ async function loadDemo() {
   await loadFromZip(zip, 'demo-app.zip');
 }
 
+/* Init */
 icons();
+showView('overview');
 </script>
 </body>
 </html>
