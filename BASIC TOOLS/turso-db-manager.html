@@ -1,90 +1,2365 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Turso Studio — Database Manager</title>
-<style>
-:root{--bg:#0a0e16;--panel:#111827;--panel2:#151e2e;--line:#253147;--text:#e8edf7;--muted:#91a0b9;--accent:#8b5cf6;--accent2:#22d3ee;--red:#f87171;--green:#34d399;--shadow:0 18px 60px #0005}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0,#182039 0,transparent 45%),var(--bg);color:var(--text);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:#1a2436;color:var(--text);border-radius:10px;padding:9px 13px;transition:.18s}button:hover{border-color:#64748b;transform:translateY(-1px)}button.primary{background:linear-gradient(120deg,#7c3aed,#5b6cfa);border:0;font-weight:650}button.danger{border-color:#7f343c;color:#ffb4b4;background:#301b25}button.ghost{background:transparent}button:disabled{opacity:.5;cursor:not-allowed;transform:none}.input, input, textarea,select{color:var(--text);background:#0c1321;border:1px solid var(--line);border-radius:10px;padding:10px;outline:none;width:100%}input:focus,textarea:focus,select:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf622}textarea{min-height:120px;resize:vertical}label{color:var(--muted);display:block;margin-bottom:6px}.app{display:none;min-height:100vh}.sidebar{width:245px;position:fixed;inset:0 auto 0 0;background:#0d1421;border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;z-index:5}.logo{display:flex;gap:12px;align-items:center;font-size:17px;font-weight:750;margin-bottom:28px}.logo-mark{width:35px;height:35px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#22d3ee);display:grid;place-items:center;font-weight:900;color:white}.nav-label{font-size:11px;color:#65738c;text-transform:uppercase;letter-spacing:1.2px;margin:14px 8px 8px}.nav button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:0;color:#9ba9c0;padding:11px;border-radius:10px;margin:2px 0}.nav button.active,.nav button:hover{background:#202b40;color:white}.nav button .ico{width:20px;text-align:center}.sidebar-bottom{margin-top:auto;border:1px solid var(--line);padding:12px;border-radius:12px;color:var(--muted);font-size:12px}.main{margin-left:245px;padding:28px;max-width:1600px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:25px}.title h1{margin:0;font-size:25px;letter-spacing:-.5px}.title p{margin:5px 0 0;color:var(--muted)}.top-actions{display:flex;gap:9px;align-items:center}.pill{border:1px solid #245545;background:#112b25;color:#6ee7b7;border-radius:99px;padding:6px 10px;font-size:12px}.view{display:none}.view.active{display:block}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card{background:linear-gradient(160deg,#141d2d,#101725);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}.stat{font-size:26px;font-weight:750;margin:8px 0}.muted{color:var(--muted)}.card-title{color:var(--muted);font-size:13px}.section{margin-top:22px}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}.section-head h2{font-size:17px;margin:0}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#101725}table{width:100%;border-collapse:collapse;min-width:600px}th,td{padding:12px 14px;border-bottom:1px solid #202a3d;text-align:left;white-space:nowrap}th{color:#9eabc2;font-size:12px;background:#141d2d;position:sticky;top:0}td{max-width:360px;overflow:hidden;text-overflow:ellipsis}tr:hover td{background:#151f30}.row-actions{display:flex;gap:6px}.small{padding:6px 9px;font-size:12px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}.toolbar input{max-width:280px}.two{display:grid;grid-template-columns:1fr 1fr;gap:15px}.badge{background:#202a3c;border:1px solid var(--line);border-radius:7px;padding:4px 8px;color:#b5c3da;font-size:12px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{margin-bottom:14px}.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.open{display:flex}.modalbox{background:#121b2a;border:1px solid var(--line);border-radius:18px;padding:22px;width:min(720px,100%);max-height:90vh;overflow:auto;box-shadow:var(--shadow)}.modalbox h2{margin-top:0}.modalfoot{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.toast{position:fixed;bottom:24px;right:24px;background:#182337;border:1px solid var(--line);border-radius:12px;padding:13px 16px;box-shadow:var(--shadow);display:none;z-index:30;max-width:min(420px,90vw)}.toast.show{display:block}.toast.error{border-color:#8b3843}.empty{padding:30px;text-align:center;color:var(--muted)}.connection{min-height:100vh;display:grid;place-items:center;padding:20px}.connect-card{width:min(520px,100%);padding:30px;background:#121b2a;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}.connect-card .logo{margin-bottom:14px}.connect-card h1{font-size:26px;margin:10px 0}.connect-card p{color:var(--muted)}.checkrow{display:flex;gap:9px;align-items:center;margin:14px 0}.checkrow input{width:auto}.console-results{margin-top:15px}.danger-zone{border-color:#6b333b}.schema-box{font-family:ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1321;padding:13px;border-radius:10px;color:#a9c7ff}.tablelist{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tabletile{border:1px solid var(--line);background:#121c2b;border-radius:12px;padding:13px;text-align:left}.tabletile strong{display:block}.tabletile span{color:var(--muted);font-size:12px}.mobile-toggle{display:none}
-@media(max-width:950px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.tablelist{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:720px){.sidebar{transform:translateX(-100%);transition:.2s}.sidebar.open{transform:none}.main{margin:0;padding:18px}.mobile-toggle{display:inline-block}.topbar{align-items:flex-start}.top-actions{flex-wrap:wrap;justify-content:flex-end}.grid{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.tablelist{grid-template-columns:1fr}.title h1{font-size:20px}}
-@media(max-width:420px){.grid{grid-template-columns:1fr}.topbar{flex-direction:column}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turso DB Manager</title>
+  <style>
+    /* ===== CSS RESET & VARIABLES ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b0f14;
+      --surface: #12181f;
+      --surface-hover: #1a222c;
+      --surface-active: #1f2937;
+      --border: #2a3441;
+      --border-light: #374151;
+      --text: #e6edf3;
+      --text-secondary: #8b98a5;
+      --text-muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-soft: rgba(59,130,246,0.12);
+      --success: #22c55e;
+      --success-soft: rgba(34,197,94,0.12);
+      --danger: #ef4444;
+      --danger-soft: rgba(239,68,68,0.12);
+      --warning: #f59e0b;
+      --warning-soft: rgba(245,158,11,0.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.35);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --sidebar-width: 260px;
+      --transition: 180ms ease;
+    }
+    html { font-size: 15px; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+    /* ===== UTILITIES ===== */
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .text-sm { font-size: 0.85rem; }
+    .text-xs { font-size: 0.75rem; }
+    .text-muted { color: var(--text-secondary); }
+    .text-danger { color: var(--danger); }
+    .text-success { color: var(--success); }
+    .text-warning { color: var(--warning); }
+    .font-mono { font-family: var(--mono); }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .w-full { width: 100%; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 0.75rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+
+    /* ===== SVG SIZING FIX (Crucial for mobile) ===== */
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+      max-width: 100%;
+      max-height: 100%;
+    }
+    .btn svg { width: 16px; height: 16px; }
+    .btn-sm svg { width: 14px; height: 14px; }
+    .btn-xs svg { width: 12px; height: 12px; }
+    .nav-item svg { width: 17px; height: 17px; }
+    .table-item svg { width: 15px; height: 15px; }
+    .empty-state svg { width: 48px; height: 48px; }
+    .stat-icon svg { width: 20px; height: 20px; }
+    .toast svg { width: 18px; height: 18px; }
+    .modal-header .btn-ghost svg { width: 20px; height: 20px; }
+    .menu-btn svg { width: 24px; height: 24px; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.55rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-family: var(--font);
+      font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all var(--transition);
+      white-space: nowrap; user-select: none;
+    }
+    .btn:hover { background: var(--surface-hover); border-color: var(--border-light); }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #dc2626; border-color: #dc2626; }
+    .btn-success { background: var(--success); border-color: var(--success); color: #fff; }
+    .btn-success:hover { background: #16a34a; border-color: #16a34a; }
+    .btn-ghost { background: transparent; border-color: transparent; }
+    .btn-ghost:hover { background: var(--surface-hover); }
+    .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+    .btn-xs { padding: 0.2rem 0.5rem; font-size: 0.72rem; }
+    .btn-icon { padding: 0.45rem; width: 34px; height: 34px; }
+
+    /* ===== INPUTS ===== */
+    .input, .select, .textarea {
+      width: 100%; padding: 0.55rem 0.8rem; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      font-family: var(--font); font-size: 0.85rem; transition: border-color var(--transition);
+      outline: none;
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .input::placeholder, .textarea::placeholder { color: var(--text-muted); }
+    .textarea { resize: vertical; min-height: 100px; font-family: var(--mono); font-size: 0.82rem; }
+    .label { display: block; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.35rem; color: var(--text-secondary); }
+    .checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; transition: border-color var(--transition);
+    }
+    .card:hover { border-color: var(--border-light); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .card-title { font-size: 0.95rem; font-weight: 600; }
+
+    /* ===== BADGES ===== */
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 500;
+    }
+    .badge-success { background: var(--success-soft); color: var(--success); }
+    .badge-danger { background: var(--danger-soft); color: var(--danger); }
+    .badge-warning { background: var(--warning-soft); color: var(--warning); }
+    .badge-accent { background: var(--accent-soft); color: var(--accent); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-success { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .dot-danger { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+    /* ===== TOASTS ===== */
+    #toast-container {
+      position: fixed; top: 1rem; right: 1rem; z-index: 10000;
+      display: flex; flex-direction: column; gap: 0.5rem; max-width: 380px;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm); background: var(--surface);
+      border: 1px solid var(--border); box-shadow: var(--shadow);
+      font-size: 0.85rem; animation: slideIn 0.25s ease;
+    }
+    .toast-success { border-left: 3px solid var(--success); }
+    .toast-error { border-left: 3px solid var(--danger); }
+    .toast-warning { border-left: 3px solid var(--warning); }
+    .toast-info { border-left: 3px solid var(--accent); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+    /* ===== MODALS ===== */
+    #modal-container {
+      position: fixed; inset: 0; z-index: 9000; display: none;
+      align-items: center; justify-content: center; padding: 1rem;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    }
+    #modal-container.active { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); width: 100%; max-width: 560px;
+      max-height: 90vh; display: flex; flex-direction: column;
+      box-shadow: var(--shadow); animation: modalIn 0.2s ease;
+    }
+    .modal-lg { max-width: 800px; }
+    .modal-xl { max-width: 1000px; }
+    @keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-size: 1rem; font-weight: 600; }
+    .modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      display: flex; justify-content: flex-end; gap: 0.5rem;
+      padding: 0.85rem 1.25rem; border-top: 1px solid var(--border);
+    }
+
+    /* ===== SCREENS ===== */
+    .screen { display: none; }
+    .screen.active { display: flex; }
+
+    /* ===== CONNECTION SCREEN ===== */
+    #connection-screen {
+      min-height: 100vh; align-items: center; justify-content: center;
+      padding: 1.5rem; background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.08) 0%, transparent 60%);
+    }
+    .connection-card {
+      width: 100%; max-width: 460px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 2rem; box-shadow: var(--shadow);
+    }
+    .connection-card .logo { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+    .connection-card .logo svg { width: 28px; height: 28px; }
+    .connection-card h1 { font-size: 1.3rem; font-weight: 700; }
+    .connection-card .subtitle { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    .input-wrapper { position: relative; }
+    .input-wrapper .toggle-visibility {
+      position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-secondary); cursor: pointer;
+      padding: 0.25rem; display: flex;
+    }
+    .connection-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; margin-top: 0.75rem; }
+    .remember-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+    .remember-row label { font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; }
+
+    /* ===== MAIN APP LAYOUT ===== */
+    #main-app { min-height: 100vh; }
+    #sidebar {
+      width: var(--sidebar-width); background: var(--surface);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+      transition: transform var(--transition);
+    }
+    #sidebar .sidebar-header {
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    #sidebar .sidebar-header svg { width: 22px; height: 22px; }
+    #sidebar .sidebar-header span { font-weight: 700; font-size: 0.95rem; }
+    #sidebar .sidebar-scroll { flex: 1; overflow-y: auto; padding: 0.75rem; }
+    #sidebar .nav-section { margin-bottom: 1rem; }
+    #sidebar .nav-section-title {
+      font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-muted); padding: 0.4rem 0.6rem;
+    }
+    #sidebar .nav-item {
+      display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.6rem;
+      border-radius: var(--radius-xs); font-size: 0.85rem; color: var(--text-secondary);
+      cursor: pointer; transition: all var(--transition); user-select: none;
+    }
+    #sidebar .nav-item:hover { background: var(--surface-hover); color: var(--text); }
+    #sidebar .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+    #sidebar .table-list { padding-left: 0.25rem; }
+    #sidebar .table-item {
+      display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem;
+      border-radius: var(--radius-xs); font-size: 0.82rem; color: var(--text-secondary);
+      cursor: pointer; transition: all var(--transition);
+    }
+    #sidebar .table-item:hover { background: var(--surface-hover); color: var(--text); }
+    #sidebar .table-item.active { background: var(--accent-soft); color: var(--accent); }
+    #sidebar .sidebar-footer {
+      padding: 0.75rem 1rem; border-top: 1px solid var(--border);
+      font-size: 0.75rem; color: var(--text-muted);
+    }
+    
+    /* Sidebar Backdrop */
+    #sidebar-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 99; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.2s;
+    }
+    #sidebar-backdrop.active { display: block; opacity: 1; }
+
+    #content {
+      margin-left: var(--sidebar-width); padding: 1.5rem 2rem;
+      min-height: 100vh;
+    }
+    .mobile-header { display: none; }
+
+    /* ===== DASHBOARD OVERVIEW ===== */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.1rem 1.25rem;
+    }
+    .stat-card .stat-label { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+    .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+    .stat-card .stat-icon {
+      width: 36px; height: 36px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      background: var(--accent-soft); color: var(--accent);
+    }
+
+    /* ===== TABLE EXPLORER ===== */
+    .table-toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .table-toolbar .search-wrapper { flex: 1 1 200px; min-width: 150px; }
+    .table-toolbar .btn { flex: 0 0 auto; }
+    .table-toolbar .select { flex: 0 0 auto; }
+    
+    .data-table-wrapper {
+      overflow-x: auto; border: 1px solid var(--border);
+      border-radius: var(--radius); background: var(--surface);
+    }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .data-table th {
+      background: var(--bg); padding: 0.6rem 0.75rem; text-align: left;
+      font-weight: 600; font-size: 0.75rem; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border); cursor: pointer;
+      user-select: none; white-space: nowrap; position: sticky; top: 0;
+    }
+    .data-table th:hover { color: var(--text); }
+    .data-table th .sort-indicator { margin-left: 0.3rem; font-size: 0.65rem; }
+    .data-table td {
+      padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
+      max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      font-family: var(--mono); font-size: 0.78rem;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: var(--surface-hover); }
+    .data-table .cell-null { color: var(--text-muted); font-style: italic; }
+    .data-table .cell-number { color: #a78bfa; }
+    .data-table .cell-text { color: #7dd3fc; }
+    .data-table .cell-blob { color: #f472b6; }
+    .data-table .row-checkbox { width: 32px; text-align: center; }
+
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .pagination-controls { display: flex; align-items: center; gap: 0.35rem; }
+
+    /* ===== SQL CONSOLE ===== */
+    .console-editor { position: relative; }
+    .console-editor .textarea {
+      min-height: 150px; padding: 0.75rem 1rem;
+      background: #0d1117; border: 1px solid var(--border);
+    }
+    .console-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .history-list { max-height: 300px; overflow-y: auto; }
+    .history-item {
+      padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; cursor: pointer; transition: background var(--transition);
+    }
+    .history-item:hover { background: var(--surface-hover); }
+    .history-item .history-sql { font-family: var(--mono); color: var(--text); }
+    .history-item .history-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+    /* ===== DANGER ZONE ===== */
+    .danger-zone { border-color: rgba(239,68,68,0.3); }
+    .danger-zone .card-header { color: var(--danger); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #content { margin-left: 0; padding: 1rem; }
+      
+      .mobile-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.75rem 1rem; background: var(--surface);
+        border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50;
+      }
+      .menu-btn {
+        background: none; border: none; color: var(--text); cursor: pointer; padding: 0.25rem;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .stats-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+      .modal { max-width: 100%; margin: 0.5rem; max-height: 95vh; }
+    }
+
+    @media (max-width: 600px) {
+      html { font-size: 14px; }
+      #content { padding: 0.75rem; }
+      
+      /* Mobile Toolbar Layout Fix */
+      .table-toolbar {
+        flex-direction: row;
+        gap: 0.35rem;
+      }
+      .table-toolbar .search-wrapper {
+        flex: 1 1 100%;
+      }
+      .table-toolbar .btn, .table-toolbar .select {
+        flex: 1 1 calc(50% - 0.35rem); /* 2 items per row */
+        justify-content: center;
+      }
+      
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat-card .stat-value { font-size: 1.3rem; }
+      .flex.items-center.justify-between.mb-3 { flex-wrap: wrap; gap: 0.5rem; }
+    }
+
+    /* ===== SPINNER ===== */
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.6s linear infinite; display: inline-block; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay {
+      display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+      padding: 2rem; color: var(--text-secondary); font-size: 0.85rem;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center; padding: 2.5rem 1rem; color: var(--text-secondary);
+    }
+    .empty-state svg { width: 40px; height: 40px; margin-bottom: 0.75rem; opacity: 0.5; }
+    .empty-state p { font-size: 0.85rem; }
+
+    /* ===== SCHEMA VIEW ===== */
+    .schema-block {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 1rem;
+      font-family: var(--mono); font-size: 0.78rem; line-height: 1.6;
+      white-space: pre-wrap; word-break: break-word; overflow-x: auto;
+    }
+
+    /* ===== PROGRESS ===== */
+    .progress-bar {
+      height: 6px; background: var(--border); border-radius: 3px;
+      overflow: hidden; margin-top: 0.5rem;
+    }
+    .progress-bar .fill {
+      height: 100%; background: var(--accent); border-radius: 3px;
+      transition: width 0.3s ease; width: 0%;
+    }
+
+    /* ===== TOGGLE ===== */
+    .toggle { position: relative; display: inline-block; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: var(--border); border-radius: 999px; transition: var(--transition);
+    }
+    .toggle .slider::before {
+      content: ''; position: absolute; height: 14px; width: 14px;
+      left: 3px; bottom: 3px; background: #fff; border-radius: 50%;
+      transition: var(--transition);
+    }
+    .toggle input:checked + .slider { background: var(--accent); }
+    .toggle input:checked + .slider::before { transform: translateX(16px); }
+  </style>
 </head>
 <body>
-<section class="connection" id="connection">
-<div class="connect-card">
-<div class="logo"><div class="logo-mark">T</div><span>Turso Studio</span></div>
-<div class="badge">LOCAL-FIRST • LIBSQL HTTP</div>
-<h1>Connect your database</h1><p>Enter your Turso database URL and authentication token. Credentials are used directly from this browser.</p>
-<div class="field"><label>Database URL</label><input id="dburl" placeholder="https://your-db.turso.io" autocomplete="off"></div>
-<div class="field"><label>Auth Token</label><div style="display:flex;gap:8px"><input id="token" type="password" placeholder="Paste database auth token" autocomplete="off"><button id="showtoken" class="ghost">Show</button></div></div>
-<div class="checkrow"><input type="checkbox" id="remember"><label for="remember" style="margin:0">Remember credentials on this device <span class="muted">(stored locally)</span></label></div>
-<button class="primary" style="width:100%" id="connect">Connect to Turso</button><p id="connectmsg" style="margin-bottom:0"></p>
-</div></section>
-<div class="app" id="app">
-<aside class="sidebar" id="sidebar"><div class="logo"><div class="logo-mark">T</div><span>Turso Studio</span></div>
-<div class="nav-label">Workspace</div><nav class="nav">
-<button class="active" data-view="overview"><span class="ico">◈</span> Overview</button>
-<button data-view="tables"><span class="ico">▦</span> Table Explorer</button>
-<button data-view="sql"><span class="ico">⌘</span> SQL Console</button>
-<button data-view="ops"><span class="ico">⇄</span> Database Operations</button>
-</nav><div class="sidebar-bottom"><div style="color:#e6edf7;margin-bottom:6px">Connected database</div><div id="dbname" style="overflow-wrap:anywhere">—</div><div style="margin-top:10px"><span class="pill">● Connected</span></div></div></aside>
-<main class="main"><div class="topbar"><div class="title"><button class="mobile-toggle" id="navtoggle">☰</button><h1 id="pagetitle">Overview</h1><p id="subtitle">Your database at a glance.</p></div><div class="top-actions"><span class="pill">● Online</span><button id="refresh">↻ Refresh</button><button id="disconnect" class="ghost">Disconnect</button></div></div>
-<section class="view active" id="overview">
-<div class="grid"><div class="card"><div class="card-title">Tables</div><div class="stat" id="statTables">—</div><div class="muted">User tables</div></div><div class="card"><div class="card-title">Total rows</div><div class="stat" id="statRows">—</div><div class="muted">Across accessible tables</div></div><div class="card"><div class="card-title">Connection</div><div class="stat" style="color:var(--green)">Active</div><div class="muted">Turso HTTP API</div></div><div class="card"><div class="card-title">Engine</div><div class="stat">SQLite</div><div class="muted">libSQL compatible</div></div></div>
-<div class="section"><div class="section-head"><h2>Tables</h2><button id="overviewCreate" class="primary">＋ New table</button></div><div class="tablelist" id="overviewTables"></div></div>
-<div class="section"><div class="section-head"><h2>Recent activity</h2></div><div class="card" id="activity"><div class="empty">Activity will appear as you work.</div></div></div>
-</section>
-<section class="view" id="tables"><div class="card"><div class="section-head"><h2 id="tableHeading">Table Explorer</h2><div class="toolbar"><button id="createTable" class="primary">＋ Create table</button></div></div><div class="toolbar"><select id="tableSelect" style="max-width:260px"><option>Select table</option></select><input id="searchRows" placeholder="Search loaded rows…" /><button id="loadTable">↻ Load</button><button id="schemaBtn">Schema</button><button id="exportTable">Export JSON</button><button id="exportCSV">Export CSV</button></div><div class="toolbar"><button id="addRow" class="primary">＋ Add row</button><button id="deleteSelected" class="danger">Delete selected</button><button id="emptyTable" class="danger">Empty table</button><button id="dropTable" class="danger">Drop table</button></div><div class="muted" id="tableMeta" style="margin-bottom:10px"></div><div class="table-wrap" id="tableData"><div class="empty">Select a table to explore its data.</div></div><div class="toolbar" style="margin-top:14px"><button id="prevPage">← Previous</button><span class="badge" id="pageInfo">Page 1</span><button id="nextPage">Next →</button></div></div></section>
-<section class="view" id="sql"><div class="card"><div class="section-head"><h2>SQL Console</h2><div class="toolbar"><button id="copySql">Copy</button><button id="clearSql">Clear</button><button id="runSql" class="primary">▶ Run query</button></div></div><label>SQL statement</label><textarea id="sqlInput" style="min-height:190px;font-family:ui-monospace,monospace" placeholder="SELECT name, type FROM sqlite_master WHERE type='table';"></textarea><p class="muted">Statements are sent directly to your connected database. Review write or schema-changing queries before execution.</p><div id="sqlStatus" class="muted"></div><div class="console-results table-wrap" id="sqlResults"><div class="empty">Query results will appear here.</div></div><div class="section"><div class="section-head"><h2>Session history</h2><button id="clearHistory">Clear history</button></div><div id="history" class="card"><div class="empty">No queries yet.</div></div></div></div></section>
-<section class="view" id="ops"><div class="two"><div class="card"><h2>Full database backup</h2><p class="muted">Export table definitions and data into a portable JSON backup file.</p><button id="backup" class="primary">↓ Download full backup</button></div><div class="card"><h2>Restore / Replace</h2><p class="muted">Validate and preview a Turso Studio backup before restoring.</p><div class="field"><input type="file" id="backupFile" accept=".json,application/json"></div><div id="backupPreview" class="muted">No backup selected.</div><button id="restore" class="primary" disabled>Restore backup</button></div></div>
-<div class="section card"><h2>Schema export</h2><p class="muted">Download SQL schema definitions for all user tables.</p><button id="schemaExport">↓ Export schema SQL</button></div>
-<div class="section card danger-zone"><h2 style="color:#ffb4b4">Danger zone</h2><p>These operations permanently affect database contents. Check the table list and confirm carefully.</p><div class="toolbar"><button id="wipeRows" class="danger">Delete all rows in all tables</button><button id="dropAll" class="danger">Drop all user tables</button></div></div></section>
-</main></div>
-<div class="modal" id="modal"><div class="modalbox"><div id="modalContent"></div><div class="modalfoot"><button id="modalCancel">Cancel</button><button id="modalConfirm" class="primary">Confirm</button></div></div></div><div class="toast" id="toast"></div>
-<script>
-(()=> {
-const $=id=>document.getElementById(id);
-let baseURL='',authToken='',tables=[],activeTable='',columns=[],rows=[],page=0,pageSize=50,selected=new Set(),history=[],activity=[],backupData=null,sortCol='',sortDir='ASC';
-const quote=x=>'"'+String(x).replace(/"/g,'""')+'"';
-function toast(s,err=false){let t=$('toast');t.textContent=s;t.className='toast show'+(err?' error':'');setTimeout(()=>t.className='toast',3200)}
-function log(s){activity.unshift(new Date().toLocaleTimeString()+' — '+s);activity=activity.slice(0,12);$('activity').innerHTML=activity.map(x=>'<div style="padding:9px;border-bottom:1px solid var(--line)">'+esc(x)+'</div>').join('')}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function val(v){if(v===null||v===undefined)return null;if(typeof v==='object'&&'value'in v){let x=v.value;if(v.type==='integer'||v.type==='float')return x;if(v.type==='blob')return x;return x}return v}
-function encodeArg(v){if(v===null)return {type:'null'};if(typeof v==='number')return Number.isInteger(v)?{type:'integer',value:String(v)}:{type:'float',value:v};if(typeof v==='boolean')return {type:'integer',value:v?'1':'0'};return {type:'text',value:String(v)}}
-async function api(sql,args=[]){const res=await fetch(baseURL.replace(/\/$/,'')+'/v2/pipeline',{method:'POST',headers:{'Authorization':'Bearer '+authToken,'Content-Type':'application/json'},body:JSON.stringify({requests:[{type:'execute',stmt:{sql,args:args.map(encodeArg)}},{type:'close'}]})});if(!res.ok){let t=await res.text();throw Error('HTTP '+res.status+': '+t.slice(0,500))}const j=await res.json();if(j.results?.[0]?.type==='error')throw Error(j.results[0].error||'SQL error');let result=j.results?.[0]?.response?.result;if(!result&&j.results?.[0]?.result)result=j.results[0].result;if(j.results?.[0]?.error)throw Error(j.results[0].error);return result||{}}
-function resultRows(r){return (r.rows||[]).map(row=>row.map(val))}
-function resultCols(r){return (r.cols||[]).map(c=>c.name)}
-async function connect(){baseURL=$('dburl').value.trim();authToken=$('token').value.trim();if(!baseURL||!authToken){$('connectmsg').textContent='Both URL and token are required.';return}if(!/^https?:\/\//i.test(baseURL)){ $('connectmsg').textContent='URL should begin with https://';return} $('connectmsg').textContent='Connecting…';try{await api("SELECT 1 AS connected");if($('remember').checked){localStorage.setItem('tursoStudioUrl',baseURL);localStorage.setItem('tursoStudioToken',authToken)}else{localStorage.removeItem('tursoStudioUrl');localStorage.removeItem('tursoStudioToken')} $('connection').style.display='none';$('app').style.display='block';$('dbname').textContent=baseURL.replace(/^https?:\/\//,'');await refreshAll();toast('Connected successfully');log('Connected to database')}catch(e){$('connectmsg').textContent=e.message;toast('Connection failed',true)}}
-async function refreshAll(){let r=await api("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");tables=resultRows(r).map(x=>x[0]);$('statTables').textContent=tables.length;$('tableSelect').innerHTML='<option value="">Select table</option>'+tables.map(t=>'<option>'+esc(t)+'</option>').join('');let total=0,items=[];for(let t of tables){try{let q=await api('SELECT COUNT(*) FROM '+quote(t));let n=Number(resultRows(q)[0]?.[0]||0);total+=n;items.push({t,n})}catch(e){items.push({t,n:'?'})}}$('statRows').textContent=total.toLocaleString();$('overviewTables').innerHTML=items.map(x=>'<button class="tabletile" data-t="'+esc(x.t)+'"><strong>▦ '+esc(x.t)+'</strong><span>'+x.n+' rows</span></button>').join('')||'<div class="empty">No user tables yet.</div>';document.querySelectorAll('.tabletile').forEach(b=>b.onclick=()=>{switchView('tables');$('tableSelect').value=b.dataset.t;loadTable()});if(activeTable&&tables.includes(activeTable))await loadTable();log('Refreshed database overview')}
-async function loadTable(){activeTable=$('tableSelect').value;if(!activeTable)return;page=0;selected.clear();await fetchTable()}
-async function fetchTable(){if(!activeTable)return;try{let info=await api('PRAGMA table_info('+quote(activeTable)+')');columns=resultRows(info).map(r=>({name:r[1],type:r[2],notnull:r[3],default:r[4],pk:r[5]}));let q='SELECT * FROM '+quote(activeTable);if(sortCol)q+=' ORDER BY '+quote(sortCol)+' '+sortDir; q+=' LIMIT '+pageSize+' OFFSET '+page*pageSize;let r=await api(q);rows=resultRows(r);renderTable();let count=await api('SELECT COUNT(*) FROM '+quote(activeTable));$('tableMeta').textContent=columns.length+' columns • '+Number(resultRows(count)[0]?.[0]||0).toLocaleString()+' total rows • page '+(page+1);$('tableHeading').textContent=activeTable;log('Loaded table '+activeTable)}catch(e){toast(e.message,true)}}
-function renderTable(){let search=$('searchRows').value.toLowerCase();let filtered=rows.filter(r=>!search||r.some(v=>String(v??'').toLowerCase().includes(search)));if(!rows.length){$('tableData').innerHTML='<div class="empty">No rows on this page.</div>';return}let html='<table><thead><tr><th><input type="checkbox" id="selectAll"></th>'+columns.map(c=>'<th><button class="ghost small sort" data-c="'+esc(c.name)+'">'+esc(c.name)+' <span class="muted">'+esc(c.type||'')+'</span></button></th>').join('')+'<th>Actions</th></tr></thead><tbody>';filtered.forEach((r,i)=>{let ix=rows.indexOf(r);html+='<tr><td><input type="checkbox" class="selrow" data-i="'+ix+'" '+(selected.has(ix)?'checked':'')+'></td>'+r.map(v=>'<td title="'+esc(JSON.stringify(v))+'">'+esc(v===null?'NULL':typeof v==='object'?JSON.stringify(v):v)+'</td>').join('')+'<td><div class="row-actions"><button class="small edit" data-i="'+ix+'">Edit</button><button class="small danger del" data-i="'+ix+'">Delete</button></div></td></tr>'});html+='</tbody></table>';$('tableData').innerHTML=html;$('pageInfo').textContent='Page '+(page+1);$('selectAll').onchange=e=>{filtered.forEach(r=>selected.add(rows.indexOf(r)));renderTable()};document.querySelectorAll('.selrow').forEach(b=>b.onchange=()=>{let i=+b.dataset.i;b.checked?selected.add(i):selected.delete(i)});document.querySelectorAll('.sort').forEach(b=>b.onclick=()=>{sortDir=sortCol===b.dataset.c&&sortDir==='ASC'?'DESC':'ASC';sortCol=b.dataset.c;fetchTable()});document.querySelectorAll('.edit').forEach(b=>b.onclick=()=>editRow(+b.dataset.i));document.querySelectorAll('.del').forEach(b=>b.onclick=()=>deleteRow(+b.dataset.i))}
-function modal(content,confirmText='Confirm',callback=()=>{}){$('modalContent').innerHTML=content;$('modal').classList.add('open');$('modalConfirm').textContent=confirmText;$('modalConfirm').onclick=async()=>{try{await callback();$('modal').classList.remove('open')}catch(e){toast(e.message,true)}};$('modalCancel').onclick=()=> $('modal').classList.remove('open')}
-function fieldEditor(row){return columns.map((c,i)=>{let v=row?row[i]:'';let isPK=!!c.pk;return '<div class="field"><label>'+esc(c.name)+' • '+esc(c.type||'TEXT')+(isPK?' • PK':'')+'</label><input data-col="'+esc(c.name)+'" data-type="'+esc(c.type||'TEXT')+'" '+(isPK&&row?'disabled':'')+' value="'+esc(v===null?'':v)+'" placeholder="'+(v===null?'NULL':'')+'"></div>'}).join('')}
-function editRow(i){let row=rows[i];modal('<h2>Edit record</h2><p class="muted">Changes are applied to this row.</p><div class="formgrid">'+fieldEditor(row)+'</div>','Save changes',async()=>{let inputs=[...$('modalContent').querySelectorAll('input[data-col]')];let vals=inputs.map(x=>x.value);let pk=columns.filter(c=>c.pk);if(!pk.length)throw Error('Editing requires a primary key. Add a primary key or use SQL.');let set=columns.filter(c=>!c.pk).map((c)=>quote(c.name)+'=?').join(',');if(!set)throw Error('No editable columns');let args=columns.filter(c=>!c.pk).map(c=>encodeTyped(inputs.find(x=>x.dataset.col===c.name).value,c.type));let where=pk.map(c=>quote(c.name)+'=?').join(' AND ');pk.forEach(c=>args.push(encodeTyped(row[columns.findIndex(x=>x.name===c.name)],c.type)));await api('UPDATE '+quote(activeTable)+' SET '+set+' WHERE '+where,args);toast('Row updated');await fetchTable();log('Updated row in '+activeTable)})}
-function encodeTyped(s,type){if(s==='' )return null;if(/INT/i.test(type))return Number(s);if(/REAL|FLOA|DOUB/i.test(type))return Number(s);if(/BLOB/i.test(type))return s;return s}
-function addRow(){modal('<h2>Insert record</h2><div class="formgrid">'+fieldEditor(null)+'</div>','Insert',async()=>{let inputs=[...$('modalContent').querySelectorAll('input[data-col]')];let names=inputs.map(x=>quote(x.dataset.col)),vals=inputs.map(x=>encodeTyped(x.value,x.dataset.type));await api('INSERT INTO '+quote(activeTable)+' ('+names.join(',')+') VALUES ('+names.map(()=>'?').join(',')+')',vals);toast('Record inserted');await fetchTable();log('Inserted row in '+activeTable)})}
-function deleteRow(i){let row=rows[i];modal('<h2>Delete this record?</h2><p>This action cannot be undone.</p><div class="schema-box">'+esc(JSON.stringify(row,null,2))+'</div>','Delete',async()=>{let pk=columns.filter(c=>c.pk);if(!pk.length)throw Error('Deleting individual rows requires a primary key.');let where=pk.map(c=>quote(c.name)+'=?').join(' AND ');let args=pk.map(c=>row[columns.findIndex(x=>x.name===c.name)]);await api('DELETE FROM '+quote(activeTable)+' WHERE '+where,args);toast('Record deleted');await fetchTable();log('Deleted row from '+activeTable)})}
-function selectedRowsDelete(){if(!selected.size)return toast('Select rows first',true);modal('<h2>Delete '+selected.size+' selected rows?</h2><p>This action cannot be undone.</p>','Delete selected',async()=>{let pk=columns.filter(c=>c.pk);if(!pk.length)throw Error('Bulk delete requires a primary key.');for(let i of selected){let row=rows[i];let where=pk.map(c=>quote(c.name)+'=?').join(' AND ');await api('DELETE FROM '+quote(activeTable)+' WHERE '+where,pk.map(c=>row[columns.findIndex(x=>x.name===c.name)]))}selected.clear();toast('Selected records deleted');await fetchTable();log('Bulk-deleted rows from '+activeTable)})}
-function download(name,data,type='application/json'){let blob=new Blob([data],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-async function exportTable(){if(!activeTable)return;let r=await api('SELECT * FROM '+quote(activeTable));download(activeTable+'.json',JSON.stringify({table:activeTable,columns,rows:resultRows(r)},null,2))}
-async function csvExport(){let r=await api('SELECT * FROM '+quote(activeTable));let all=resultRows(r);let csv=[columns.map(c=>csvCell(c.name)).join(','),...all.map(row=>row.map(csvCell).join(','))].join('\r\n');download(activeTable+'.csv',csv,'text/csv')}
-function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
-async function schemaBtn(){if(!activeTable)return;let r=await api("SELECT sql FROM sqlite_master WHERE type='table' AND name=?", [activeTable]);modal('<h2>Schema: '+esc(activeTable)+'</h2><div class="schema-box">'+esc(resultRows(r)[0]?.[0]||'No schema found')+'</div>','Close',async()=>{})}
-function createTable(){modal('<h2>Create table</h2><div class="field"><label>Table name</label><input id="newTableName" placeholder="table_name"></div><div class="field"><label>Columns (one definition per line)</label><textarea id="newCols" placeholder="id INTEGER PRIMARY KEY&#10;name TEXT NOT NULL&#10;created_at TEXT"></textarea></div><p class="muted">Column definitions are SQLite expressions. Avoid including the outer parentheses.</p>','Create table',async()=>{let name=$('newTableName').value.trim(),defs=$('newCols').value.trim();if(!name||!defs)throw Error('Name and column definitions are required');await api('CREATE TABLE '+quote(name)+' ('+defs+')');toast('Table created');await refreshAll();$('tableSelect').value=name;await loadTable();log('Created table '+name)})}
-async function emptyTable(){if(!activeTable)return;modal('<h2>Empty table '+esc(activeTable)+'?</h2><p>All rows will be deleted but the table structure will remain.</p><p>Type <b>'+esc(activeTable)+'</b> to confirm.</p><input id="confirmName">','Empty table',async()=>{if($('confirmName').value!==activeTable)throw Error('Confirmation name does not match');await api('DELETE FROM '+quote(activeTable));toast('Table emptied');await refreshAll();log('Emptied table '+activeTable)})}
-async function dropTable(){if(!activeTable)return;let t=activeTable;modal('<h2>Drop table '+esc(t)+'?</h2><p>This permanently removes the table and its data.</p><p>Type <b>'+esc(t)+'</b> to confirm.</p><input id="confirmName">','Drop table',async()=>{if($('confirmName').value!==t)throw Error('Confirmation name does not match');await api('DROP TABLE '+quote(t));activeTable='';toast('Table dropped');await refreshAll();$('tableData').innerHTML='<div class="empty">Select a table.</div>';log('Dropped table '+t)})}
-function switchView(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(v).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));let titles={overview:['Overview','Your database at a glance.'],tables:['Table Explorer','Browse, edit and export records.'],sql:['SQL Console','Run SQL against the connected database.'],ops:['Database Operations','Backup, restore, import and destructive operations.']};$('pagetitle').textContent=titles[v][0];$('subtitle').textContent=titles[v][1];$('sidebar').classList.remove('open')}
-function backup(){let payload={format:'turso-studio-backup',version:1,createdAt:new Date().toISOString(),tables:[]};(async()=>{try{for(let t of tables){let s=await api("SELECT sql FROM sqlite_master WHERE type='table' AND name=?",[t]);let sql=resultRows(s)[0]?.[0];let pr=await api('PRAGMA table_info('+quote(t)+')');let cs=resultRows(pr).map(r=>({name:r[1],type:r[2],pk:r[5]}));let data=await api('SELECT * FROM '+quote(t));payload.tables.push({name:t,createSql:sql,columns:cs,rows:resultRows(data)})}download('turso-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(payload,null,2));toast('Backup downloaded');log('Downloaded full database backup')}catch(e){toast(e.message,true)}})()}
-async function schemaExport(){let sql=[];for(let t of tables){let r=await api("SELECT sql FROM sqlite_master WHERE type='table' AND name=?",[t]);let s=resultRows(r)[0]?.[0];if(s)sql.push(s+';')}download('database-schema.sql',sql.join('\n\n'),'text/sql')}
-let backupDataFile=null;
-$('backupFile').onchange=async e=>{let f=e.target.files[0];backupDataFile=f;backupData=null;if(!f){$('backupPreview').textContent='No backup selected';$('restore').disabled=true;return}try{let j=JSON.parse(await f.text());if(j.format!=='turso-studio-backup'||!Array.isArray(j.tables))throw Error('Unsupported backup format');for(let t of j.tables){if(!t.name||!t.createSql||!Array.isArray(t.rows))throw Error('Malformed table backup');}backupData=j;$('backupPreview').innerHTML='<div class="schema-box">'+esc(j.tables.map(t=>t.name+' — '+t.rows.length+' rows').join('\n'))+'</div><p>'+j.tables.length+' tables • created '+esc(j.createdAt||'unknown')+'</p>';$('restore').disabled=false}catch(err){$('backupPreview').textContent=err.message;$('restore').disabled=true;toast('Invalid backup',true)}};
-async function restoreBackup(){if(!backupData)return;modal('<h2>Restore / replace database?</h2><p>This process will drop existing user tables and recreate the tables in the backup. This is destructive and cannot be undone.</p><p>Type <b>REPLACE DATABASE</b> to confirm.</p><input id="restoreConfirm">','Replace database',async()=>{if($('restoreConfirm').value!=='REPLACE DATABASE')throw Error('Confirmation phrase mismatch');let completed=0;try{for(let t of tables){await api('DROP TABLE '+quote(t));}for(let t of backupData.tables){await api(t.createSql);if(t.rows.length){let colNames=t.columns.map(c=>quote(c.name));let placeholders=colNames.map(()=>'?').join(',');for(let row of t.rows){await api('INSERT INTO '+quote(t.name)+' ('+colNames.join(',')+') VALUES ('+placeholders+')',row);completed++}}}toast('Restore finished: '+completed+' rows');log('Restored backup');await refreshAll()}catch(e){toast('Restore stopped after partial changes: '+e.message,true);log('Restore failed: '+e.message)}})}
-async function wipeAll(drop){modal('<h2>'+(drop?'Drop all tables?':'Delete all table rows?')+'</h2><p>'+esc(tables.join(', '))+'</p><p>Type <b>'+(drop?'DROP ALL TABLES':'DELETE ALL ROWS')+'</b> to confirm.</p><input id="wipeConfirm">','Confirm destructive action',async()=>{if($('wipeConfirm').value!==(drop?'DROP ALL TABLES':'DELETE ALL ROWS'))throw Error('Confirmation phrase mismatch');for(let t of tables)await api((drop?'DROP TABLE ':'DELETE FROM ')+quote(t));toast(drop?'All tables dropped':'All table rows deleted');log(drop?'Dropped all tables':'Deleted rows from all tables');await refreshAll()})}
-$('showtoken').onclick=()=>{$('token').type=$('token').type==='password'?'text':'password';$('showtoken').textContent=$('token').type==='password'?'Show':'Hide'};
-$('connect').onclick=connect;$('refresh').onclick=()=>refreshAll().catch(e=>toast(e.message,true));$('disconnect').onclick=()=>{baseURL='';authToken='';tables=[];activeTable='';$('app').style.display='none';$('connection').style.display='grid';$('token').value='';$('connectmsg').textContent='Disconnected.';localStorage.removeItem('tursoStudioUrl');localStorage.removeItem('tursoStudioToken')};
-document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchView(b.dataset.view));$('navtoggle').onclick=()=>$('sidebar').classList.toggle('open');$('tableSelect').onchange=loadTable;$('loadTable').onclick=loadTable;$('addRow').onclick=addRow;$('deleteSelected').onclick=selectedRowsDelete;$('emptyTable').onclick=emptyTable;$('dropTable').onclick=dropTable;$('createTable').onclick=createTable;$('overviewCreate').onclick=()=>{switchView('tables');createTable()};$('exportTable').onclick=exportTable;$('exportCSV').onclick=csvExport;$('schemaBtn').onclick=schemaBtn;$('searchRows').oninput=renderTable;$('prevPage').onclick=()=>{if(page>0){page--;fetchTable()}};$('nextPage').onclick=()=>{page++;fetchTable()};$('runSql').onclick=async()=>{let sql=$('sqlInput').value.trim();if(!sql)return toast('Enter a query',true);if(/^\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|REPLACE|VACUUM)\b/i.test(sql)){if(!confirm('This SQL may modify your database. Continue?'))return}try{$('sqlStatus').textContent='Executing…';let r=await api(sql);let cols=resultCols(r),rs=resultRows(r);$('sqlResults').innerHTML=cols.length?'<table><thead><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+rs.map(row=>'<tr>'+row.map(v=>'<td>'+esc(v===null?'NULL':v)+'</td>').join('')+'</tr>').join('')+'</tbody></table>':'<div class="empty">Statement executed. '+(r.rowsAffected??'')+' rows affected.</div>';$('sqlStatus').textContent='Success • '+rs.length+' rows returned';history.unshift(sql);history=history.slice(0,20);$('history').innerHTML=history.map(x=>'<button class="tabletile" style="width:100%;margin-bottom:8px" data-sql="'+esc(x)+'">'+esc(x.slice(0,140))+'</button>').join('');document.querySelectorAll('#history button').forEach(b=>b.onclick=()=> $('sqlInput').value=b.dataset.sql);log('Executed SQL')}catch(e){$('sqlStatus').textContent='Error: '+e.message;toast(e.message,true)}};$('clearSql').onclick=()=>{$('sqlInput').value='';$('sqlResults').innerHTML='<div class="empty">Query results will appear here.</div>'};$('copySql').onclick=()=>navigator.clipboard?.writeText($('sqlInput').value).then(()=>toast('Copied')).catch(()=>toast('Clipboard unavailable',true));$('clearHistory').onclick=()=>{history=[];$('history').innerHTML='<div class="empty">No queries yet.</div>'};$('backup').onclick=backup;$('restore').onclick=restoreBackup;$('schemaExport').onclick=schemaExport;$('wipeRows').onclick=()=>wipeAll(false);$('dropAll').onclick=()=>wipeAll(true);if(localStorage.getItem('tursoStudioUrl')){$('dburl').value=localStorage.getItem('tursoStudioUrl');$('token').value=localStorage.getItem('tursoStudioToken')||'';$('remember').checked=true}
-})();
-</script></body></html>
+  <div id="app">
+    <!-- ===== CONNECTION SCREEN ===== -->
+    <div id="connection-screen" class="screen active">
+      <div class="connection-card">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+          <h1>Turso DB Manager</h1>
+        </div>
+        <p class="subtitle">Connect to your Turso database using the official libSQL HTTP API.</p>
+
+        <div class="form-group">
+          <label class="label" for="conn-url">Database URL</label>
+          <input id="conn-url" class="input" type="text" placeholder="libsql://[db]-[org].turso.io" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="form-group">
+          <label class="label" for="conn-token">Auth Token</label>
+          <div class="input-wrapper">
+            <input id="conn-token" class="input" type="password" placeholder="Your Turso database token" autocomplete="off" spellcheck="false">
+            <button class="toggle-visibility" onclick="App.toggleTokenVisibility()" title="Show/Hide token">
+              <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="remember-row">
+          <input type="checkbox" id="remember-creds" class="checkbox">
+          <label for="remember-creds">Remember connection (stores URL & token in this browser)</label>
+        </div>
+
+        <div class="connection-status" id="conn-status">
+          <span class="dot dot-danger"></span>
+          <span>Not connected</span>
+        </div>
+
+        <button id="connect-btn" class="btn btn-primary w-full mt-4" onclick="App.connect()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          Connect
+        </button>
+
+        <button class="btn btn-ghost w-full mt-2 text-sm" onclick="App.clearStoredCredentials()">
+          Clear stored credentials
+        </button>
+
+        <p class="text-xs text-muted mt-4" style="line-height:1.5;">
+          Credentials are sent only to your Turso database endpoint. The token is never logged or sent to third parties.
+          Remembering credentials stores them in <code>localStorage</code>, which is not encrypted.
+        </p>
+      </div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <div id="main-app" class="screen">
+      <!-- Sidebar Backdrop for Mobile -->
+      <div id="sidebar-backdrop" onclick="App.closeSidebar()"></div>
+
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="sidebar-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+          <span>Turso DB</span>
+        </div>
+        <div class="sidebar-scroll" id="sidebar-nav">
+          <!-- Rendered by JS -->
+        </div>
+        <div class="sidebar-footer" id="sidebar-footer">
+          <!-- Rendered by JS -->
+        </div>
+      </aside>
+
+      <!-- Content -->
+      <main id="content">
+        <div class="mobile-header">
+          <div class="flex items-center gap-2">
+            <button class="menu-btn" onclick="App.toggleSidebar()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <button class="menu-btn hidden" id="mobile-back-btn" onclick="App.navigate('overview')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <span id="mobile-title" style="font-weight:600;font-size:0.9rem;">Overview</span>
+          </div>
+          <div style="width:22px;"></div>
+        </div>
+        <div id="page-content"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modals & Toasts -->
+  <div id="modal-container" onclick="App.handleModalBackdrop(event)">
+    <div class="modal" id="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-title">Modal</span>
+        <button class="btn btn-ghost btn-icon" onclick="App.closeModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+  <div id="toast-container"></div>
+
+  <script>
+    // ===================================================================
+    //  TURSO DB MANAGER — Single-file application
+    // ===================================================================
+
+    (function() {
+      'use strict';
+
+      // ========== STATE ==========
+      const state = {
+        baseUrl: '',
+        token: '',
+        connected: false,
+        tables: [],
+        currentTable: null,
+        tableInfo: [],
+        tableData: [],
+        tableColumns: [],
+        tableTotal: 0,
+        page: 0,
+        pageSize: 25,
+        sortColumn: null,
+        sortDir: 'ASC',
+        search: '',
+        selectedRows: new Set(),
+        rowIdKey: null,
+        rowIdCols: [],
+        hasRowId: false,
+        recentOps: [],
+        sqlHistory: [],
+        pageName: 'overview',
+        loading: false,
+      };
+
+      // ========== ICONS ==========
+      const ICONS = {
+        overview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+        table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>',
+        sql: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>',
+        database: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+        importExport: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+        settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+        refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
+        plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+        trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+        edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+        download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+        upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+        chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>',
+        chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>',
+        close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+        check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+        warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+        search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+        filter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
+        key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+        logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+      };
+
+      // ========== DOM HELPERS ==========
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => document.querySelectorAll(sel);
+
+      function el(tag, attrs = {}, ...children) {
+        const elem = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === 'class') elem.className = v;
+          else if (k === 'style' && typeof v === 'object') Object.assign(elem.style, v);
+          else if (k.startsWith('on') && typeof v === 'function') elem.addEventListener(k.slice(2), v);
+          else if (k === 'html') elem.innerHTML = v;
+          else if (k === 'dataset') Object.assign(elem.dataset, v);
+          else elem.setAttribute(k, v);
+        }
+        for (const child of children.flat()) {
+          if (child == null) continue;
+          elem.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
+        }
+        return elem;
+      }
+
+      function esc(str) {
+        if (str == null) return '';
+        return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      }
+
+      function quoteIdent(name) {
+        return '"' + String(name).replace(/"/g, '""') + '"';
+      }
+
+      function timeAgo(iso) {
+        const diff = Date.now() - new Date(iso).getTime();
+        const s = Math.floor(diff / 1000);
+        if (s < 60) return 'just now';
+        const m = Math.floor(s / 60);
+        if (m < 60) return m + 'm ago';
+        const h = Math.floor(m / 60);
+        if (h < 24) return h + 'h ago';
+        return Math.floor(h / 24) + 'd ago';
+      }
+
+      // ========== TOAST ==========
+      function showToast(message, type = 'info', duration = 3500) {
+        const container = $('#toast-container');
+        const toast = el('div', { class: `toast toast-${type}` });
+        const icon = type === 'success' ? ICONS.check : type === 'error' ? ICONS.warning : ICONS.warning;
+        toast.innerHTML = `<span style="width:16px;height:16px;flex-shrink:0;color:var(--${type === 'error' ? 'danger' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'accent'})">${icon}</span><span>${esc(message)}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.animation = 'fadeOut 0.25s ease forwards';
+          setTimeout(() => toast.remove(), 260);
+        }, duration);
+      }
+
+      // ========== MODAL ==========
+      let modalOnConfirm = null;
+      function openModal(title, bodyHtml, footerHtml, sizeClass = '') {
+        const modal = $('#modal');
+        modal.className = 'modal ' + sizeClass;
+        $('#modal-title').textContent = title;
+        $('#modal-body').innerHTML = bodyHtml;
+        $('#modal-footer').innerHTML = footerHtml;
+        $('#modal-container').classList.add('active');
+      }
+      function closeModal() {
+        $('#modal-container').classList.remove('active');
+        modalOnConfirm = null;
+      }
+      function handleModalBackdrop(e) {
+        if (e.target === $('#modal-container')) closeModal();
+      }
+
+      // ========== CONFIRMATION MODAL ==========
+      function confirmDialog(title, message, confirmLabel, requireText = null) {
+        return new Promise((resolve) => {
+          const id = 'confirm-input-' + Date.now();
+          const body = `
+            <div style="display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:1rem;">
+              <span style="color:var(--danger);width:22px;height:22px;flex-shrink:0;">${ICONS.warning}</span>
+              <div>${message}</div>
+            </div>
+            ${requireText ? `<div class="form-group"><label class="label">Type <strong style="color:var(--danger);">${esc(requireText)}</strong> to confirm</label><input id="${id}" class="input" placeholder="${esc(requireText)}" autocomplete="off"></div>` : ''}
+          `;
+          const footer = `
+            <button class="btn" onclick="App.closeModal()">Cancel</button>
+            <button class="btn btn-danger" id="confirm-btn" ${requireText ? 'disabled' : ''} onclick="App._resolveConfirm(true)">${esc(confirmLabel)}</button>
+          `;
+          openModal('Confirm action', body, footer);
+          if (requireText) {
+            setTimeout(() => {
+              const inp = document.getElementById(id);
+              inp.focus();
+              inp.addEventListener('input', () => {
+                document.getElementById('confirm-btn').disabled = inp.value !== requireText;
+              });
+            }, 50);
+          }
+          App._resolveConfirm = (val) => {
+            const inp = requireText ? document.getElementById(id) : null;
+            if (val && requireText && inp && inp.value !== requireText) return;
+            closeModal();
+            resolve(val);
+          };
+        });
+      }
+
+      // ========== API CLIENT ==========
+      async function tursoPipeline(requests) {
+        if (!state.baseUrl || !state.token) throw new Error('Not connected');
+        const res = await fetch(state.baseUrl + '/v2/pipeline', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + state.token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ requests }),
+        });
+        if (!res.ok) {
+          let detail = '';
+          try { detail = await res.text(); } catch (e) {}
+          throw new Error(`HTTP ${res.status}: ${detail || res.statusText}`);
+        }
+        const data = await res.json();
+        return data.results || [];
+      }
+
+      async function tursoQuery(sql, args = []) {
+        const results = await tursoPipeline([
+          { type: 'execute', stmt: { sql, args } },
+          { type: 'close' },
+        ]);
+        const first = results[0];
+        if (!first) throw new Error('Empty response');
+        if (first.type === 'error') {
+          throw new Error(first.error?.message || 'Query failed');
+        }
+        return first.response.result;
+      }
+
+      async function tursoExecute(sql, args = []) {
+        return tursoQuery(sql, args);
+      }
+
+      async function tursoBatch(statements) {
+        if (!statements.length) return [];
+        const requests = statements.map(s => ({ type: 'execute', stmt: { sql: s.sql, args: s.args || [] } }));
+        requests.push({ type: 'close' });
+        const results = await tursoPipeline(requests);
+        const out = [];
+        for (let i = 0; i < statements.length; i++) {
+          const r = results[i];
+          if (!r) throw new Error('Missing result for statement ' + i);
+          if (r.type === 'error') throw new Error(r.error?.message || 'Batch statement failed');
+          out.push(r.response.result);
+        }
+        return out;
+      }
+
+      // ========== VALUE CONVERSION ==========
+      function convertValue(v) {
+        if (v === null || v === undefined) return null;
+        switch (v.type) {
+          case 'null': return null;
+          case 'integer': return Number(v.value);
+          case 'float': return Number(v.value);
+          case 'text': return v.value;
+          case 'blob': return { __blob: true, base64: v.base64 };
+          default: return v.value;
+        }
+      }
+
+      function toTursoValue(val) {
+        if (val === null || val === undefined) return { type: 'null' };
+        if (typeof val === 'number') {
+          if (Number.isInteger(val)) return { type: 'integer', value: String(val) };
+          return { type: 'float', value: String(val) };
+        }
+        if (typeof val === 'boolean') return { type: 'integer', value: val ? '1' : '0' };
+        if (typeof val === 'object' && val.__blob) return { type: 'blob', base64: val.base64 };
+        return { type: 'text', value: String(val) };
+      }
+
+      function displayValue(v) {
+        if (v === null) return { text: 'NULL', cls: 'cell-null' };
+        if (typeof v === 'object' && v.__blob) return { text: 'BLOB (' + v.base64.length + ')', cls: 'cell-blob' };
+        if (typeof v === 'number') return { text: String(v), cls: 'cell-number' };
+        return { text: String(v), cls: 'cell-text' };
+      }
+
+      // ========== SCHEMA INTROSPECTION ==========
+      async function fetchTables() {
+        const result = await tursoQuery(
+          "SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+        );
+        return result.rows.map(r => ({
+          name: convertValue(r[0]),
+          schema: convertValue(r[1]),
+        }));
+      }
+
+      async function fetchTableInfo(tableName) {
+        const result = await tursoQuery(`PRAGMA table_info(${quoteIdent(tableName)})`);
+        return result.rows.map(r => ({
+          cid: convertValue(r[0]),
+          name: convertValue(r[1]),
+          type: convertValue(r[2]) || '',
+          notnull: convertValue(r[3]),
+          dflt_value: convertValue(r[4]),
+          pk: convertValue(r[5]),
+        }));
+      }
+
+      async function fetchTableRowCount(tableName) {
+        const result = await tursoQuery(`SELECT COUNT(*) AS c FROM ${quoteIdent(tableName)}`);
+        return convertValue(result.rows[0][0]);
+      }
+
+      async function fetchAllTablesWithCounts() {
+        const tables = await fetchTables();
+        const withCounts = [];
+        for (const t of tables) {
+          try {
+            const count = await fetchTableRowCount(t.name);
+            withCounts.push({ ...t, count });
+          } catch (e) {
+            withCounts.push({ ...t, count: '?' });
+          }
+        }
+        return withCounts;
+      }
+
+      // ========== TABLE DATA ==========
+      async function loadTableDataClean(tableName, opts = {}) {
+        const page = opts.page ?? state.page;
+        const pageSize = opts.pageSize ?? state.pageSize;
+        const search = opts.search ?? state.search;
+        const sortColumn = opts.sortColumn ?? state.sortColumn;
+        const sortDir = opts.sortDir ?? state.sortDir;
+
+        const info = await fetchTableInfo(tableName);
+        const pkCols = info.filter(c => c.pk > 0).sort((a, b) => a.pk - b.pk);
+        const schemaObj = state.tables.find(t => t.name === tableName);
+        const withoutRowid = schemaObj && /WITHOUT\s+ROWID/i.test(schemaObj.schema || '');
+        const useRowId = pkCols.length === 0 && !withoutRowid;
+
+        let selectCols = useRowId ? 'rowid AS _rowid_, *' : '*';
+
+        let where = '';
+        let searchArgs = [];
+        if (search && info.length > 0) {
+          const conds = info.map(c => `CAST(${quoteIdent(c.name)} AS TEXT) LIKE ?`);
+          where = 'WHERE ' + conds.join(' OR ');
+          searchArgs = info.map(() => ({ type: 'text', value: `%${search}%` }));
+        }
+
+        let orderBy = '';
+        if (sortColumn) {
+          if (info.some(c => c.name === sortColumn)) {
+            orderBy = `ORDER BY ${quoteIdent(sortColumn)} ${sortDir === 'DESC' ? 'DESC' : 'ASC'}`;
+          } else if (sortColumn === '_rowid_' && useRowId) {
+            orderBy = `ORDER BY rowid ${sortDir === 'DESC' ? 'DESC' : 'ASC'}`;
+          }
+        }
+
+        const offset = page * pageSize;
+        const sql = `SELECT ${selectCols} FROM ${quoteIdent(tableName)} ${where} ${orderBy} LIMIT ? OFFSET ?`;
+        const args = [...searchArgs, { type: 'integer', value: String(pageSize) }, { type: 'integer', value: String(offset) }];
+        const result = await tursoQuery(sql, args);
+
+        const countSql = `SELECT COUNT(*) AS c FROM ${quoteIdent(tableName)} ${where}`;
+        const countResult = await tursoQuery(countSql, searchArgs);
+        const total = convertValue(countResult.rows[0][0]);
+
+        const cols = result.cols || [];
+        const rawRows = result.rows || [];
+        let displayCols = cols;
+        let displayRows = rawRows;
+
+        if (useRowId) {
+          displayCols = cols.slice(1);
+          displayRows = rawRows.map(r => r.slice(1));
+        }
+
+        const rowIdentities = rawRows.map((r, idx) => {
+          if (useRowId) {
+            return { type: 'rowid', value: convertValue(r[0]) };
+          }
+          if (pkCols.length > 0) {
+            const pkVals = pkCols.map(pk => {
+              const colIdx = cols.findIndex(c => c.name === pk.name);
+              return { name: pk.name, value: convertValue(rawRows[idx][colIdx]) };
+            });
+            return { type: 'pk', values: pkVals };
+          }
+          return { type: 'none' };
+        });
+
+        return {
+          info,
+          cols: displayCols,
+          rows: displayRows,
+          rawRows,
+          total,
+          useRowId,
+          pkCols,
+          rowIdentities,
+        };
+      }
+
+      // ========== RENDER HELPERS ==========
+      function renderSidebar() {
+        const nav = $('#sidebar-nav');
+        const sections = [
+          {
+            title: 'Main',
+            items: [
+              { id: 'overview', label: 'Overview', icon: ICONS.overview },
+              { id: 'tables', label: 'Table Explorer', icon: ICONS.table },
+              { id: 'sql', label: 'SQL Console', icon: ICONS.sql },
+            ],
+          },
+          {
+            title: 'Management',
+            items: [
+              { id: 'database', label: 'Database Operations', icon: ICONS.database },
+              { id: 'importexport', label: 'Import & Export', icon: ICONS.importExport },
+              { id: 'settings', label: 'Connection', icon: ICONS.settings },
+            ],
+          },
+        ];
+
+        let html = '';
+        for (const sec of sections) {
+          html += `<div class="nav-section"><div class="nav-section-title">${esc(sec.title)}</div>`;
+          for (const item of sec.items) {
+            const active = state.pageName === item.id ? 'active' : '';
+            html += `<div class="nav-item ${active}" onclick="App.navigate('${item.id}')">${item.icon}<span>${esc(item.label)}</span></div>`;
+          }
+          html += `</div>`;
+        }
+
+        if (state.tables.length > 0) {
+          html += `<div class="nav-section"><div class="nav-section-title">Tables (${state.tables.length})</div><div class="table-list">`;
+          for (const t of state.tables) {
+            const active = state.currentTable === t.name ? 'active' : '';
+            html += `<div class="table-item ${active}" onclick="App.selectTable('${esc(t.name)}')">${ICONS.table}<span class="truncate">${esc(t.name)}</span></div>`;
+          }
+          html += `</div></div>`;
+        } else {
+          html += `<div class="nav-section"><div class="nav-section-title">Tables</div><div style="padding:0.4rem 0.6rem;font-size:0.8rem;color:var(--text-muted);">No tables</div></div>`;
+        }
+
+        nav.innerHTML = html;
+
+        const footer = $('#sidebar-footer');
+        const dbName = state.baseUrl.replace(/^https?:\/\//, '').split('.')[0] || 'connected';
+        footer.innerHTML = `<div class="flex items-center justify-between"><span class="truncate" title="${esc(state.baseUrl)}">${esc(dbName)}</span><span class="badge badge-success"><span class="dot dot-success"></span>Live</span></div>`;
+      }
+
+      function setPage(name) {
+        state.pageName = name;
+        renderSidebar();
+        
+        // Mobile Header Title & Back Button
+        const titles = {
+          overview: 'Overview',
+          tables: state.currentTable ? `Table: ${state.currentTable}` : 'Table Explorer',
+          sql: 'SQL Console',
+          database: 'Database Operations',
+          importexport: 'Import & Export',
+          settings: 'Connection Settings',
+        };
+        $('#mobile-title').textContent = titles[name] || 'Dashboard';
+        
+        const backBtn = $('#mobile-back-btn');
+        if (name === 'overview' || (name === 'tables' && !state.currentTable)) {
+          backBtn.classList.add('hidden');
+        } else {
+          backBtn.classList.remove('hidden');
+        }
+
+        const content = $('#page-content');
+        content.innerHTML = '<div class="loading-overlay"><span class="spinner"></span> Loading…</div>';
+
+        try {
+          switch (name) {
+            case 'overview': renderOverview(); break;
+            case 'tables': renderTableExplorer(); break;
+            case 'sql': renderSQLConsole(); break;
+            case 'database': renderDatabaseOps(); break;
+            case 'importexport': renderImportExport(); break;
+            case 'settings': renderSettings(); break;
+            default: renderOverview();
+          }
+        } catch (e) {
+          content.innerHTML = `<div class="empty-state"><p class="text-danger">Error: ${esc(e.message)}</p></div>`;
+          showToast(e.message, 'error');
+        }
+      }
+
+      // ========== OVERVIEW ==========
+      async function renderOverview() {
+        const content = $('#page-content');
+        content.innerHTML = '<div class="loading-overlay"><span class="spinner"></span> Loading database overview…</div>';
+
+        try {
+          const tables = await fetchAllTablesWithCounts();
+          state.tables = tables.map(t => ({ name: t.name, schema: t.schema }));
+          const totalRows = tables.reduce((sum, t) => sum + (typeof t.count === 'number' ? t.count : 0), 0);
+
+          const dbName = state.baseUrl.replace(/^https?:\/\//, '').split('.')[0] || 'Database';
+
+          let html = `
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 style="font-size:1.3rem;font-weight:700;">Dashboard</h2>
+                <p class="text-sm text-muted">${esc(dbName)} · connected</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="App.refreshOverview()">${ICONS.refresh} Refresh</button>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="flex items-center justify-between">
+                  <div><div class="stat-label">Connection</div><div class="stat-value" style="font-size:1.1rem;"><span class="badge badge-success"><span class="dot dot-success"></span>Connected</span></div></div>
+                  <div class="stat-icon">${ICONS.database}</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="flex items-center justify-between">
+                  <div><div class="stat-label">Tables</div><div class="stat-value">${tables.length}</div></div>
+                  <div class="stat-icon">${ICONS.table}</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="flex items-center justify-between">
+                  <div><div class="stat-label">Total Rows</div><div class="stat-value">${totalRows.toLocaleString()}</div></div>
+                  <div class="stat-icon" style="background:var(--success-soft);color:var(--success);">${ICONS.database}</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="flex items-center justify-between">
+                  <div><div class="stat-label">Endpoint</div><div class="stat-value text-sm truncate">${esc(state.baseUrl.replace(/^https?:\/\//, ''))}</div></div>
+                  <div class="stat-icon" style="background:var(--warning-soft);color:var(--warning);">${ICONS.settings}</div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          html += `<div class="card mb-4"><div class="card-header"><span class="card-title">Tables</span></div>`;
+          if (tables.length === 0) {
+            html += `<div class="empty-state">${ICONS.table}<p>No tables yet. Create one in Table Explorer.</p></div>`;
+          } else {
+            html += `<div class="data-table-wrapper"><table class="data-table"><thead><tr><th>Table</th><th>Rows</th><th>Schema</th><th></th></tr></thead><tbody>`;
+            for (const t of tables) {
+              html += `<tr>
+                <td style="font-family:var(--font);font-weight:500;">${esc(t.name)}</td>
+                <td>${typeof t.count === 'number' ? t.count.toLocaleString() : t.count}</td>
+                <td class="text-xs text-muted" style="max-width:300px;" title="${esc(t.schema)}">${esc((t.schema || '').slice(0, 80))}${(t.schema || '').length > 80 ? '…' : ''}</td>
+                <td><button class="btn btn-xs btn-ghost" onclick="App.selectTable('${esc(t.name)}')">Open</button></td>
+              </tr>`;
+            }
+            html += `</tbody></table></div>`;
+          }
+          html += `</div>`;
+
+          html += `<div class="card"><div class="card-header"><span class="card-title">Recent Operations</span></div>`;
+          if (state.recentOps.length === 0) {
+            html += `<div class="empty-state">${ICONS.warning}<p>No operations yet.</p></div>`;
+          } else {
+            html += `<div style="display:flex;flex-direction:column;gap:0.5rem;">`;
+            for (const op of state.recentOps.slice(0, 10)) {
+              html += `<div class="flex items-center gap-2 text-sm" style="padding:0.35rem 0;">
+                <span class="badge ${op.type === 'error' ? 'badge-danger' : op.type === 'success' ? 'badge-success' : 'badge-accent'}">${esc(op.type)}</span>
+                <span class="truncate" style="flex:1;">${esc(op.message)}</span>
+                <span class="text-xs text-muted">${timeAgo(op.time)}</span>
+              </div>`;
+            }
+            html += `</div>`;
+          }
+          html += `</div>`;
+
+          content.innerHTML = html;
+        } catch (e) {
+          content.innerHTML = `<div class="empty-state"><p class="text-danger">Failed to load overview: ${esc(e.message)}</p><button class="btn btn-primary mt-3" onclick="App.refreshOverview()">Retry</button></div>`;
+          showToast(e.message, 'error');
+        }
+      }
+
+      // ========== TABLE EXPLORER ==========
+      async function renderTableExplorer() {
+        const content = $('#page-content');
+
+        if (state.tables.length === 0) {
+          try { state.tables = await fetchTables(); } catch (e) { showToast(e.message, 'error'); }
+        }
+
+        if (!state.currentTable && state.tables.length > 0) {
+          state.currentTable = state.tables[0].name;
+          $('#mobile-title').textContent = `Table: ${state.currentTable}`;
+        }
+
+        if (!state.currentTable) {
+          content.innerHTML = `<div class="empty-state">${ICONS.table}<p>No tables found. Create your first table.</p><button class="btn btn-primary mt-3" onclick="App.showCreateTable()">Create Table</button></div>`;
+          return;
+        }
+
+        if (!state.tables.find(t => t.name === state.currentTable)) {
+          state.currentTable = state.tables[0]?.name || null;
+          if (!state.currentTable) {
+            content.innerHTML = `<div class="empty-state"><p>No tables.</p></div>`;
+            return;
+          }
+        }
+
+        content.innerHTML = '<div class="loading-overlay"><span class="spinner"></span> Loading table…</div>';
+
+        try {
+          const data = await loadTableDataClean(state.currentTable);
+          state.tableInfo = data.info;
+          state.tableColumns = data.cols;
+          state.tableData = data.rows;
+          state.tableTotal = data.total;
+          state.rowIdCols = data.pkCols;
+          state.hasRowId = data.useRowId;
+          state.rowIdentities = data.rowIdentities;
+
+          const tableName = state.currentTable;
+          const page = state.page;
+          const totalPages = Math.max(1, Math.ceil(data.total / state.pageSize));
+
+          let html = `
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h2 style="font-size:1.2rem;font-weight:700;">${esc(tableName)}</h2>
+                <p class="text-sm text-muted">${data.total.toLocaleString()} rows · ${data.cols.length} columns</p>
+              </div>
+              <div class="flex gap-2 flex-wrap">
+                <button class="btn btn-sm" onclick="App.showTableSchema('${esc(tableName)}')">Schema</button>
+                <button class="btn btn-sm" onclick="App.showRenameTable('${esc(tableName)}')">Rename</button>
+                <button class="btn btn-sm btn-danger" onclick="App.showDeleteTable('${esc(tableName)}')">Drop</button>
+                <button class="btn btn-sm" onclick="App.emptyTable('${esc(tableName)}')">Empty</button>
+                <button class="btn btn-primary btn-sm" onclick="App.refreshTable()">${ICONS.refresh}</button>
+              </div>
+            </div>
+            <div class="table-toolbar">
+              <div class="search-wrapper">
+                <input class="input" id="table-search" placeholder="Search across columns…" value="${esc(state.search)}" onkeydown="if(event.key==='Enter')App.applySearch()">
+              </div>
+              <select class="select" style="width:auto;" id="page-size-select" onchange="App.changePageSize(this.value)">
+                <option value="10" ${state.pageSize === 10 ? 'selected' : ''}>10 rows</option>
+                <option value="25" ${state.pageSize === 25 ? 'selected' : ''}>25 rows</option>
+                <option value="50" ${state.pageSize === 50 ? 'selected' : ''}>50 rows</option>
+                <option value="100" ${state.pageSize === 100 ? 'selected' : ''}>100 rows</option>
+              </select>
+              <button class="btn btn-sm btn-primary" onclick="App.showInsertRow()">${ICONS.plus} Insert</button>
+              <button class="btn btn-sm btn-danger" id="bulk-delete-btn" onclick="App.bulkDelete()" disabled>${ICONS.trash} Delete</button>
+              <button class="btn btn-sm" onclick="App.exportTableCSV()">CSV</button>
+              <button class="btn btn-sm" onclick="App.exportTableJSON()">JSON</button>
+            </div>
+          `;
+
+          if (data.rows.length === 0) {
+            html += `<div class="card"><div class="empty-state">${ICONS.table}<p>${state.search ? 'No rows match your search.' : 'This table is empty.'}</p>${state.search ? `<button class="btn btn-sm mt-2" onclick="App.clearSearch()">Clear search</button>` : `<button class="btn btn-primary btn-sm mt-2" onclick="App.showInsertRow()">Insert first row</button>`}</div></div>`;
+          } else {
+            html += `<div class="data-table-wrapper"><table class="data-table"><thead><tr>`;
+            html += `<th class="row-checkbox"><input type="checkbox" class="checkbox" id="select-all" onchange="App.toggleSelectAll(this.checked)"></th>`;
+            for (const c of data.cols) {
+              const isSorted = state.sortColumn === c.name;
+              const arrow = isSorted ? (state.sortDir === 'ASC' ? '▲' : '▼') : '';
+              html += `<th onclick="App.sortBy('${esc(c.name)}')">${esc(c.name)} <span class="text-xs text-muted" style="font-weight:400;">${esc(c.decltype || '')}</span><span class="sort-indicator">${arrow}</span></th>`;
+            }
+            html += `</tr></thead><tbody>`;
+
+            data.rows.forEach((row, idx) => {
+              const identity = data.rowIdentities[idx];
+              const canSelect = identity.type !== 'none';
+              const rowId = canSelect ? App.getRowKey(identity) : null;
+              const selected = rowId && state.selectedRows.has(rowId);
+              html += `<tr>`;
+              html += `<td class="row-checkbox">${canSelect ? `<input type="checkbox" class="checkbox row-select" data-rowkey="${esc(rowId)}" ${selected ? 'checked' : ''} onchange="App.toggleRow('${esc(rowId)}', this.checked)">` : ''}</td>`;
+              for (const cell of row) {
+                const val = convertValue(cell);
+                const disp = displayValue(val);
+                html += `<td class="${disp.cls}" title="${esc(disp.text)}">${esc(disp.text)}</td>`;
+              }
+              html += `<td><button class="btn btn-xs btn-ghost" onclick="App.showRowDetail(${idx})">View</button></td>`;
+              html += `</tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+
+            html += `<div class="pagination">
+              <span>Page ${page + 1} of ${totalPages} · ${data.total.toLocaleString()} rows</span>
+              <div class="pagination-controls">
+                <button class="btn btn-xs" onclick="App.goPage(${page - 1})" ${page <= 0 ? 'disabled' : ''}>${ICONS.chevronLeft} Prev</button>
+                <button class="btn btn-xs" onclick="App.goPage(${page + 1})" ${page >= totalPages - 1 ? 'disabled' : ''}>Next ${ICONS.chevronRight}</button>
+              </div>
+            </div>`;
+          }
+
+          content.innerHTML = html;
+          App.updateBulkDeleteState();
+
+        } catch (e) {
+          content.innerHTML = `<div class="empty-state"><p class="text-danger">Failed to load table: ${esc(e.message)}</p><button class="btn btn-primary mt-3" onclick="App.refreshTable()">Retry</button></div>`;
+          showToast(e.message, 'error');
+        }
+      }
+
+      // ========== SQL CONSOLE ==========
+      function renderSQLConsole() {
+        const content = $('#page-content');
+        let historyHtml = '';
+        if (state.sqlHistory.length === 0) {
+          historyHtml = `<div class="empty-state" style="padding:1.5rem;">${ICONS.sql}<p>No queries yet.</p></div>`;
+        } else {
+          historyHtml = `<div class="history-list">`;
+          for (const h of state.sqlHistory.slice(0, 20)) {
+            historyHtml += `<div class="history-item" onclick="App.loadHistoryQuery(${state.sqlHistory.indexOf(h)})">
+              <div class="history-sql truncate">${esc(h.sql)}</div>
+              <div class="history-meta">${h.status === 'ok' ? '<span class="text-success">✓</span>' : '<span class="text-danger">✗</span>'} ${timeAgo(h.time)}</div>
+            </div>`;
+          }
+          historyHtml += `</div>`;
+        }
+
+        content.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div><h2 style="font-size:1.2rem;font-weight:700;">SQL Console</h2><p class="text-sm text-muted">Execute SQL against your Turso database.</p></div>
+            <button class="btn btn-sm btn-ghost" onclick="App.clearConsole()">Clear console</button>
+          </div>
+          <div class="card mb-4">
+            <div class="console-toolbar">
+              <button class="btn btn-primary btn-sm" id="run-sql-btn" onclick="App.runSQL()">▶ Execute</button>
+              <button class="btn btn-sm" onclick="App.copyQuery()">Copy query</button>
+              <button class="btn btn-sm" onclick="App.formatSQL()">Format</button>
+            </div>
+            <div class="console-editor">
+              <textarea id="sql-input" class="textarea" placeholder="SELECT * FROM users LIMIT 10;" spellcheck="false">${state._lastSql || ''}</textarea>
+            </div>
+          </div>
+          <div id="sql-result" class="mb-4"></div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Query History</span></div>
+            ${historyHtml}
+          </div>
+        `;
+      }
+
+      // ========== DATABASE OPERATIONS ==========
+      function renderDatabaseOps() {
+        const content = $('#page-content');
+        content.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div><h2 style="font-size:1.2rem;font-weight:700;">Database Operations</h2><p class="text-sm text-muted">Backup, restore, and manage your entire database.</p></div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-header"><span class="card-title">Full Database Backup</span></div>
+            <p class="text-sm text-muted mb-3">Download a complete JSON backup containing all table schemas and records.</p>
+            <button class="btn btn-primary" onclick="App.downloadFullBackup()">${ICONS.download} Download JSON Backup</button>
+            <button class="btn mt-2" onclick="App.downloadSQLSchema()">${ICONS.download} Download SQL Schema</button>
+            <div id="backup-progress" class="mt-3 hidden"><div class="text-sm text-muted" id="backup-progress-text"></div><div class="progress-bar"><div class="fill" id="backup-progress-fill"></div></div></div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-header"><span class="card-title">Full Database Restore / Replace</span></div>
+            <p class="text-sm text-muted mb-3">Upload a previously downloaded JSON backup. Preview the contents, then choose to merge or replace.</p>
+            <input type="file" id="backup-file" class="input" accept=".json,application/json" onchange="App.previewBackup(event)">
+            <div id="backup-preview" class="mt-3"></div>
+          </div>
+
+          <div class="card danger-zone mb-4">
+            <div class="card-header"><span class="card-title">Delete All Data</span></div>
+            <p class="text-sm text-muted mb-3">Remove all records from every table while keeping the table structures intact.</p>
+            <button class="btn btn-danger" onclick="App.deleteAllData()">${ICONS.trash} Delete All Records</button>
+          </div>
+
+          <div class="card danger-zone">
+            <div class="card-header"><span class="card-title">Drop All Tables</span></div>
+            <p class="text-sm text-muted mb-3">Permanently remove all user tables and their data. This cannot be undone.</p>
+            <button class="btn btn-danger" onclick="App.dropAllTables()">${ICONS.trash} Drop All Tables</button>
+          </div>
+        `;
+      }
+
+      // ========== IMPORT / EXPORT ==========
+      function renderImportExport() {
+        const content = $('#page-content');
+        const tableOptions = state.tables.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+
+        content.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div><h2 style="font-size:1.2rem;font-weight:700;">Import & Export</h2><p class="text-sm text-muted">Move data in and out of your database.</p></div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-header"><span class="card-title">Export</span></div>
+            <div class="form-group">
+              <label class="label">Table</label>
+              <select class="select" id="export-table">${tableOptions || '<option value="">No tables</option>'}</select>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn btn-primary btn-sm" onclick="App.exportSelectedCSV()">CSV</button>
+              <button class="btn btn-sm" onclick="App.exportSelectedJSON()">JSON</button>
+              <button class="btn btn-sm" onclick="App.exportSelectedSchema()">SQL Schema</button>
+            </div>
+            <button class="btn mt-3" onclick="App.downloadFullBackup()">${ICONS.download} Full Database JSON Backup</button>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-header"><span class="card-title">Import CSV</span></div>
+            <div class="form-group">
+              <label class="label">Target table</label>
+              <select class="select" id="import-table">${tableOptions || '<option value="">No tables</option>'}</select>
+            </div>
+            <input type="file" id="csv-file" class="input" accept=".csv,text/csv">
+            <p class="text-xs text-muted mt-2">CSV must include a header row matching column names. Data is appended (INSERT).</p>
+            <button class="btn btn-primary mt-2" onclick="App.importCSV()">${ICONS.upload} Import CSV</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Import JSON</span></div>
+            <p class="text-sm text-muted mb-2">Upload a JSON backup file (from this app) to restore it.</p>
+            <button class="btn btn-primary" onclick="App.navigate('database')">${ICONS.upload} Go to Restore</button>
+          </div>
+        `;
+      }
+
+      // ========== SETTINGS ==========
+      function renderSettings() {
+        const content = $('#page-content');
+        content.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div><h2 style="font-size:1.2rem;font-weight:700;">Connection Settings</h2><p class="text-sm text-muted">Manage your Turso connection credentials.</p></div>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-header"><span class="card-title">Current Connection</span></div>
+            <div class="form-group">
+              <label class="label">Database URL</label>
+              <input class="input" value="${esc(state.baseUrl)}" readonly>
+            </div>
+            <div class="form-group">
+              <label class="label">Auth Token</label>
+              <input class="input" type="password" value="${esc(state.token)}" readonly>
+            </div>
+            <div class="connection-status"><span class="dot dot-success"></span><span class="text-success">Connected</span></div>
+            <button class="btn btn-danger mt-3" onclick="App.disconnect()">${ICONS.logout} Disconnect</button>
+          </div>
+
+          <div class="card danger-zone">
+            <div class="card-header"><span class="card-title">Clear Stored Credentials</span></div>
+            <p class="text-sm text-muted mb-3">Remove any saved URL and token from this browser's localStorage.</p>
+            <button class="btn btn-danger" onclick="App.clearStoredCredentials()">Clear stored credentials</button>
+          </div>
+        `;
+      }
+
+      // ========== APP CONTROLLER ==========
+      const App = {
+        // --- Connection ---
+        toggleTokenVisibility() {
+          const inp = $('#conn-token');
+          inp.type = inp.type === 'password' ? 'text' : 'password';
+        },
+
+        async connect() {
+          const urlInput = $('#conn-url').value.trim();
+          const tokenInput = $('#conn-token').value.trim();
+          const remember = $('#remember-creds').checked;
+
+          if (!urlInput) { showToast('Please enter a database URL.', 'error'); return; }
+          if (!tokenInput) { showToast('Please enter an auth token.', 'error'); return; }
+
+          let baseUrl = urlInput;
+          if (!/^(libsql|turso|https?):\/\//i.test(baseUrl)) {
+            showToast('Invalid URL. Must start with libsql://, turso://, or https://', 'error');
+            return;
+          }
+          baseUrl = baseUrl.replace(/^libsql:\/\//i, 'https://').replace(/^turso:\/\//i, 'https://');
+          if (!baseUrl.startsWith('https://')) {
+            showToast('URL must be HTTPS after conversion.', 'error');
+            return;
+          }
+
+          state.baseUrl = baseUrl.replace(/\/+$/, '');
+          state.token = tokenInput;
+
+          const btn = $('#connect-btn');
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner"></span> Connecting…';
+
+          try {
+            const result = await tursoQuery('SELECT 1 AS ok');
+            if (!result || !result.rows || result.rows.length === 0) {
+              throw new Error('Connection test failed: no response');
+            }
+
+            state.connected = true;
+
+            if (remember) {
+              try {
+                localStorage.setItem('turso_credentials', JSON.stringify({ url: urlInput, token: tokenInput }));
+              } catch (e) { /* ignore */ }
+            } else {
+              try { localStorage.removeItem('turso_credentials'); } catch (e) {}
+            }
+
+            state.tables = await fetchTables();
+
+            $('#connection-screen').classList.remove('active');
+            $('#main-app').classList.add('active');
+            state.pageName = 'overview';
+            renderSidebar();
+            await renderOverview();
+
+            showToast('Connected successfully.', 'success');
+          } catch (e) {
+            state.connected = false;
+            state.baseUrl = '';
+            state.token = '';
+            showToast('Connection failed: ' + e.message, 'error', 6000);
+          } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Connect';
+          }
+        },
+
+        disconnect() {
+          state.connected = false;
+          state.baseUrl = '';
+          state.token = '';
+          state.tables = [];
+          state.currentTable = null;
+          state.pageName = 'overview';
+          $('#main-app').classList.remove('active');
+          $('#connection-screen').classList.add('active');
+          $('#conn-token').value = '';
+          showToast('Disconnected.', 'info');
+        },
+
+        clearStoredCredentials() {
+          try { localStorage.removeItem('turso_credentials'); } catch (e) {}
+          showToast('Stored credentials cleared.', 'success');
+        },
+
+        // --- Navigation ---
+        navigate(page) {
+          if (page !== 'tables') state.currentTable = null;
+          setPage(page);
+          App.closeSidebar();
+        },
+
+        toggleSidebar() {
+          const sidebar = $('#sidebar');
+          const backdrop = $('#sidebar-backdrop');
+          sidebar.classList.toggle('open');
+          if (sidebar.classList.contains('open')) {
+            backdrop.classList.add('active');
+          } else {
+            backdrop.classList.remove('active');
+          }
+        },
+        
+        closeSidebar() {
+          $('#sidebar').classList.remove('open');
+          $('#sidebar-backdrop').classList.remove('active');
+        },
+
+        // --- Overview ---
+        async refreshOverview() {
+          await renderOverview();
+          showToast('Overview refreshed.', 'success');
+        },
+
+        // --- Table selection ---
+        async selectTable(name) {
+          state.currentTable = name;
+          state.page = 0;
+          state.search = '';
+          state.sortColumn = null;
+          state.sortDir = 'ASC';
+          state.selectedRows.clear();
+          setPage('tables');
+          App.closeSidebar();
+        },
+
+        async refreshTable() {
+          if (!state.currentTable) return;
+          try {
+            state.tables = await fetchTables();
+            await renderTableExplorer();
+            showToast('Table refreshed.', 'success');
+          } catch (e) { showToast(e.message, 'error'); }
+        },
+
+        // --- Pagination / Search / Sort ---
+        goPage(p) {
+          if (p < 0) return;
+          state.page = p;
+          state.selectedRows.clear();
+          App.refreshTableDataOnly();
+        },
+
+        changePageSize(size) {
+          state.pageSize = parseInt(size, 10);
+          state.page = 0;
+          App.refreshTableDataOnly();
+        },
+
+        applySearch() {
+          state.search = $('#table-search').value.trim();
+          state.page = 0;
+          state.selectedRows.clear();
+          App.refreshTableDataOnly();
+        },
+
+        clearSearch() {
+          state.search = '';
+          state.page = 0;
+          App.refreshTableDataOnly();
+        },
+
+        sortBy(col) {
+          if (state.sortColumn === col) {
+            state.sortDir = state.sortDir === 'ASC' ? 'DESC' : 'ASC';
+          } else {
+            state.sortColumn = col;
+            state.sortDir = 'ASC';
+          }
+          state.page = 0;
+          App.refreshTableDataOnly();
+        },
+
+        async refreshTableDataOnly() {
+          try {
+            const data = await loadTableDataClean(state.currentTable);
+            state.tableData = data.rows;
+            state.tableColumns = data.cols;
+            state.tableTotal = data.total;
+            state.rowIdentities = data.rowIdentities;
+            state.rowIdCols = data.pkCols;
+            state.hasRowId = data.useRowId;
+            await renderTableExplorer();
+          } catch (e) {
+            showToast(e.message, 'error');
+          }
+        },
+
+        // --- Selection ---
+        toggleRow(rowKey, checked) {
+          if (checked) state.selectedRows.add(rowKey);
+          else state.selectedRows.delete(rowKey);
+          App.updateBulkDeleteState();
+        },
+
+        toggleSelectAll(checked) {
+          state.selectedRows.clear();
+          if (checked && state.rowIdentities) {
+            state.rowIdentities.forEach(id => {
+              const key = App.getRowKey(id);
+              if (key) state.selectedRows.add(key);
+            });
+          }
+          document.querySelectorAll('.row-select').forEach(cb => {
+            cb.checked = checked;
+          });
+          App.updateBulkDeleteState();
+        },
+
+        updateBulkDeleteState() {
+          const btn = $('#bulk-delete-btn');
+          if (btn) {
+            btn.disabled = state.selectedRows.size === 0;
+            btn.innerHTML = `${ICONS.trash} Delete (${state.selectedRows.size})`;
+          }
+        },
+
+        getRowKey(identity) {
+          if (!identity) return null;
+          if (identity.type === 'rowid') return 'rowid:' + identity.value;
+          if (identity.type === 'pk') {
+            return 'pk:' + identity.values.map(v => v.value).join('|');
+          }
+          return null;
+        },
+
+        // --- Row details ---
+        showRowDetail(idx) {
+          const row = state.tableData[idx];
+          if (!row) return;
+          const cols = state.tableColumns;
+          let html = '<div style="display:flex;flex-direction:column;gap:0.5rem;">';
+          cols.forEach((c, i) => {
+            const val = convertValue(row[i]);
+            const disp = displayValue(val);
+            html += `<div style="display:flex;gap:1rem;padding:0.4rem 0;border-bottom:1px solid var(--border);">
+              <div style="width:140px;flex-shrink:0;font-weight:500;font-size:0.82rem;">${esc(c.name)}</div>
+              <div class="${disp.cls}" style="flex:1;word-break:break-all;font-family:var(--mono);font-size:0.78rem;">${esc(disp.text)}</div>
+            </div>`;
+          });
+          html += '</div>';
+          openModal('Row Details', html, '<button class="btn" onclick="App.closeModal()">Close</button>', 'modal-lg');
+        },
+
+        // --- Insert / Edit ---
+        showInsertRow() {
+          if (!state.currentTable) return;
+          const info = state.tableInfo;
+          let html = '<div style="display:flex;flex-direction:column;gap:0.75rem;">';
+          info.forEach(c => {
+            html += `<div class="form-group">
+              <label class="label">${esc(c.name)} <span class="text-xs text-muted">(${esc(c.type || 'ANY')})</span></label>
+              <input class="input insert-field" data-col="${esc(c.name)}" placeholder="${c.dflt_value ? 'default: ' + esc(c.dflt_value) : 'NULL'}" autocomplete="off">
+            </div>`;
+          });
+          html += '</div>';
+          openModal('Insert Row into ' + state.currentTable, html,
+            `<button class="btn" onclick="App.closeModal()">Cancel</button>
+             <button class="btn btn-primary" onclick="App.insertRow()">Insert</button>`, 'modal-lg');
+        },
+
+        async insertRow() {
+          try {
+            const fields = document.querySelectorAll('.insert-field');
+            const cols = [];
+            const args = [];
+            fields.forEach(f => {
+              const val = f.value;
+              if (val === '') return;
+              cols.push(f.dataset.col);
+              if (val === 'NULL' || val === 'null') {
+                args.push({ type: 'null' });
+              } else if (!isNaN(val) && val.trim() !== '' && !/^0\d/.test(val)) {
+                args.push({ type: 'integer', value: String(parseInt(val, 10)) });
+              } else {
+                args.push({ type: 'text', value: val });
+              }
+            });
+
+            if (cols.length === 0) {
+              await tursoExecute(`INSERT INTO ${quoteIdent(state.currentTable)} DEFAULT VALUES`);
+            } else {
+              const sql = `INSERT INTO ${quoteIdent(state.currentTable)} (${cols.map(quoteIdent).join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`;
+              await tursoExecute(sql, args);
+            }
+            App.closeModal();
+            showToast('Row inserted.', 'success');
+            state.recentOps.unshift({ type: 'success', message: 'Inserted row into ' + state.currentTable, time: new Date().toISOString() });
+            await App.refreshTableDataOnly();
+          } catch (e) {
+            showToast('Insert failed: ' + e.message, 'error');
+          }
+        },
+
+        // --- Delete ---
+        async bulkDelete() {
+          if (state.selectedRows.size === 0) return;
+          const confirmed = await confirmDialog(
+            'Delete selected rows',
+            `Are you sure you want to delete <strong>${state.selectedRows.size}</strong> row(s) from <strong>${esc(state.currentTable)}</strong>? This cannot be undone.`,
+            'Delete rows'
+          );
+          if (!confirmed) return;
+
+          try {
+            const identities = [];
+            state.rowIdentities.forEach(id => {
+              const key = App.getRowKey(id);
+              if (key && state.selectedRows.has(key)) identities.push(id);
+            });
+
+            const statements = identities.map(id => {
+              if (id.type === 'rowid') {
+                return {
+                  sql: `DELETE FROM ${quoteIdent(state.currentTable)} WHERE rowid = ?`,
+                  args: [{ type: 'integer', value: String(id.value) }],
+                };
+              } else if (id.type === 'pk') {
+                const where = id.values.map(v => `${quoteIdent(v.name)} = ?`).join(' AND ');
+                const args = id.values.map(v => toTursoValue(v.value));
+                return {
+                  sql: `DELETE FROM ${quoteIdent(state.currentTable)} WHERE ${where}`,
+                  args,
+                };
+              }
+              return null;
+            }).filter(Boolean);
+
+            await tursoBatch(statements);
+            state.selectedRows.clear();
+            showToast('Rows deleted.', 'success');
+            state.recentOps.unshift({ type: 'success', message: `Deleted ${statements.length} row(s) from ${state.currentTable}`, time: new Date().toISOString() });
+            await App.refreshTableDataOnly();
+          } catch (e) {
+            showToast('Delete failed: ' + e.message, 'error');
+          }
+        },
+
+        // --- Table operations ---
+        showTableSchema(name) {
+          const t = state.tables.find(x => x.name === name);
+          if (!t) return;
+          const html = `<div class="schema-block">${esc(t.schema || '(no schema)')}</div>`;
+          openModal('Schema: ' + name, html, '<button class="btn" onclick="App.closeModal()">Close</button>', 'modal-lg');
+        },
+
+        showRenameTable(oldName) {
+          const html = `<div class="form-group"><label class="label">New table name</label><input class="input" id="rename-input" value="${esc(oldName)}" autocomplete="off"></div>
+            <p class="text-xs text-muted mt-2">Renaming a table may break foreign keys or application queries referencing the old name.</p>`;
+          openModal('Rename Table', html,
+            `<button class="btn" onclick="App.closeModal()">Cancel</button>
+             <button class="btn btn-primary" onclick="App.renameTable('${esc(oldName)}')">Rename</button>`);
+        },
+
+        async renameTable(oldName) {
+          const newName = $('#rename-input').value.trim();
+          if (!newName || newName === oldName) { App.closeModal(); return; }
+          try {
+            await tursoExecute(`ALTER TABLE ${quoteIdent(oldName)} RENAME TO ${quoteIdent(newName)}`);
+            App.closeModal();
+            showToast(`Table renamed to "${newName}".`, 'success');
+            state.currentTable = newName;
+            state.tables = await fetchTables();
+            renderSidebar();
+            await renderTableExplorer();
+            state.recentOps.unshift({ type: 'success', message: `Renamed "${oldName}" to "${newName}"`, time: new Date().toISOString() });
+          } catch (e) {
+            showToast('Rename failed: ' + e.message, 'error');
+          }
+        },
+
+        async showDeleteTable(name) {
+          const confirmed = await confirmDialog(
+            'Drop table',
+            `Are you sure you want to permanently <strong>DROP</strong> the table <strong>${esc(name)}</strong>? All its data will be lost. This cannot be undone.`,
+            'Drop table',
+            name
+          );
+          if (!confirmed) return;
+          try {
+            await tursoExecute(`DROP TABLE ${quoteIdent(name)}`);
+            showToast('Table dropped.', 'success');
+            state.tables = await fetchTables();
+            if (state.currentTable === name) state.currentTable = null;
+            state.pageName = 'overview';
+            renderSidebar();
+            await renderOverview();
+            state.recentOps.unshift({ type: 'success', message: `Dropped table "${name}"`, time: new Date().toISOString() });
+          } catch (e) {
+            showToast('Drop failed: ' + e.message, 'error');
+          }
+        },
+
+        async emptyTable(name) {
+          const confirmed = await confirmDialog(
+            'Empty table',
+            `Delete <strong>all rows</strong> from <strong>${esc(name)}</strong>? The table structure will remain. This cannot be undone.`,
+            'Delete all rows'
+          );
+          if (!confirmed) return;
+          try {
+            await tursoExecute(`DELETE FROM ${quoteIdent(name)}`);
+            showToast('Table emptied.', 'success');
+            state.recentOps.unshift({ type: 'success', message: `Emptied table "${name}"`, time: new Date().toISOString() });
+            await App.refreshTableDataOnly();
+          } catch (e) {
+            showToast('Empty failed: ' + e.message, 'error');
+          }
+        },
+
+        showCreateTable() {
+          const html = `
+            <div class="form-group">
+              <label class="label">CREATE TABLE statement</label>
+              <textarea class="textarea" id="create-table-sql" placeholder="CREATE TABLE my_table (&#10;  id INTEGER PRIMARY KEY,&#10;  name TEXT NOT NULL,&#10;  created_at TEXT DEFAULT CURRENT_TIMESTAMP&#10;);" style="min-height:160px;"></textarea>
+            </div>
+            <p class="text-xs text-muted">Enter a valid SQLite CREATE TABLE statement.</p>
+          `;
+          openModal('Create Table', html,
+            `<button class="btn" onclick="App.closeModal()">Cancel</button>
+             <button class="btn btn-primary" onclick="App.createTable()">Create</button>`, 'modal-lg');
+        },
+
+        async createTable() {
+          const sql = $('#create-table-sql').value.trim();
+          if (!sql) { showToast('Please enter SQL.', 'error'); return; }
+          try {
+            await tursoExecute(sql);
+            App.closeModal();
+            showToast('Table created.', 'success');
+            state.tables = await fetchTables();
+            renderSidebar();
+            await renderOverview();
+            state.recentOps.unshift({ type: 'success', message: 'Created new table', time: new Date().toISOString() });
+          } catch (e) {
+            showToast('Create failed: ' + e.message, 'error');
+          }
+        },
+
+        // --- Backup ---
+        async downloadFullBackup() {
+          try {
+            const tables = await fetchTables();
+            const backup = {
+              format: 'turso-backup',
+              version: 1,
+              createdAt: new Date().toISOString(),
+              tables: [],
+            };
+
+            const progress = $('#backup-progress');
+            const progressText = $('#backup-progress-text');
+            const progressFill = $('#backup-progress-fill');
+            if (progress) progress.classList.remove('hidden');
+
+            for (let i = 0; i < tables.length; i++) {
+              const t = tables[i];
+              if (progressText) progressText.textContent = `Fetching ${t.name} (${i + 1}/${tables.length})…`;
+              if (progressFill) progressFill.style.width = `${((i) / tables.length) * 100}%`;
+
+              const info = await fetchTableInfo(t.name);
+              const result = await tursoQuery(`SELECT * FROM ${quoteIdent(t.name)}`);
+              backup.tables.push({
+                name: t.name,
+                schema: t.schema,
+                columns: info,
+                rows: (result.rows || []).map(row => row.map(v => v)),
+              });
+            }
+
+            if (progressFill) progressFill.style.width = '100%';
+            if (progressText) progressText.textContent = 'Done.';
+
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `turso-backup-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('Backup downloaded.', 'success');
+            state.recentOps.unshift({ type: 'success', message: 'Downloaded full database backup', time: new Date().toISOString() });
+            setTimeout(() => { if (progress) progress.classList.add('hidden'); }, 1500);
+          } catch (e) {
+            showToast('Backup failed: ' + e.message, 'error');
+          }
+        },
+
+        async downloadSQLSchema() {
+          try {
+            const tables = await fetchTables();
+            const sql = tables.map(t => t.schema + ';').join('\n\n');
+            const blob = new Blob([sql], { type: 'application/sql' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `turso-schema-${Date.now()}.sql`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('SQL schema downloaded.', 'success');
+          } catch (e) {
+            showToast('Schema export failed: ' + e.message, 'error');
+          }
+        },
+
+        // --- Restore ---
+        async previewBackup(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          const previewDiv = $('#backup-preview');
+          try {
+            const text = await file.text();
+            const backup = JSON.parse(text);
+            if (backup.format !== 'turso-backup' || !Array.isArray(backup.tables)) {
+              throw new Error('Invalid backup format. Expected format "turso-backup" with a tables array.');
+            }
+            const totalRows = backup.tables.reduce((sum, t) => sum + (t.rows ? t.rows.length : 0), 0);
+            let html = `<div class="card"><div class="card-header"><span class="card-title">Backup Preview</span></div>
+              <p class="text-sm text-muted mb-2">Created: ${esc(backup.createdAt || 'unknown')}</p>
+              <p class="text-sm mb-2"><strong>${backup.tables.length}</strong> tables · <strong>${totalRows.toLocaleString()}</strong> total rows</p>
+              <div class="data-table-wrapper"><table class="data-table"><thead><tr><th>Table</th><th>Rows</th><th>Columns</th></tr></thead><tbody>`;
+            for (const t of backup.tables) {
+              html += `<tr><td>${esc(t.name)}</td><td>${(t.rows || []).length.toLocaleString()}</td><td>${(t.columns || []).length}</td></tr>`;
+            }
+            html += `</tbody></table></div></div>`;
+            html += `<div class="flex gap-2 mt-3 flex-wrap">
+              <button class="btn btn-primary" onclick="App.restoreBackup(false)">Merge Restore</button>
+              <button class="btn btn-danger" onclick="App.restoreBackup(true)">Replace Database</button>
+            </div>
+            <p class="text-xs text-muted mt-2">Merge adds data to existing tables. Replace drops all current tables and recreates from the backup.</p>`;
+            previewDiv.innerHTML = html;
+            App._pendingBackup = backup;
+          } catch (e) {
+            previewDiv.innerHTML = `<p class="text-danger text-sm">${esc(e.message)}</p>`;
+            App._pendingBackup = null;
+          }
+        },
+
+        async restoreBackup(replace) {
+          const backup = App._pendingBackup;
+          if (!backup) { showToast('No backup loaded.', 'error'); return; }
+
+          const action = replace ? 'REPLACE the entire database' : 'merge into the database';
+          const confirmed = await confirmDialog(
+            replace ? 'Replace database' : 'Merge restore',
+            `You are about to <strong>${action}</strong> with ${backup.tables.length} table(s) and ${backup.tables.reduce((s, t) => s + (t.rows || []).length, 0).toLocaleString()} row(s).${replace ? '<br><br><span class="text-danger">This will permanently overwrite existing data.</span>' : ''}`,
+            replace ? 'Replace database' : 'Merge restore',
+            replace ? 'REPLACE' : null
+          );
+          if (!confirmed) return;
+
+          try {
+            if (replace) {
+              const existing = await fetchTables();
+              for (const t of existing) {
+                await tursoExecute(`DROP TABLE IF EXISTS ${quoteIdent(t.name)}`);
+              }
+            }
+
+            for (const t of backup.tables) {
+              const createSql = t.schema.replace(/^CREATE\s+TABLE\s+/i, 'CREATE TABLE IF NOT EXISTS ');
+              await tursoExecute(createSql);
+
+              if (t.rows && t.rows.length > 0) {
+                const colNames = (t.columns || []).map(c => c.name);
+                if (colNames.length === 0) continue;
+                const placeholders = colNames.map(() => '?').join(', ');
+                const insertSql = `INSERT INTO ${quoteIdent(t.name)} (${colNames.map(quoteIdent).join(', ')}) VALUES (${placeholders})`;
+
+                const chunkSize = 50;
+                for (let i = 0; i < t.rows.length; i += chunkSize) {
+                  const chunk = t.rows.slice(i, i + chunkSize);
+                  const statements = chunk.map(row => ({
+                    sql: insertSql,
+                    args: row.map(v => {
+                      if (v && v.type) return v;
+                      return toTursoValue(v);
+                    }),
+                  }));
+                  await tursoBatch(statements);
+                }
+              }
+            }
+
+            showToast(replace ? 'Database replaced successfully.' : 'Backup merged successfully.', 'success');
+            state.recentOps.unshift({ type: 'success', message: replace ? 'Replaced database from backup' : 'Merged backup into database', time: new Date().toISOString() });
+            state.tables = await fetchTables();
+            renderSidebar();
+            await renderOverview();
+          } catch (e) {
+            showToast('Restore failed: ' + e.message, 'error', 7000);
+          }
+        },
+
+        // --- Delete all data ---
+        async deleteAllData() {
+          const tables = await fetchTables();
+          const confirmed = await confirmDialog(
+            'Delete all records',
+            `This will delete <strong>all rows</strong> from <strong>${tables.length}</strong> table(s):<br><br><strong>${tables.map(t => esc(t.name)).join(', ')}</strong><br><br>The table structures will remain. This cannot be undone.`,
+            'Delete all records',
+            'DELETE'
+          );
+          if (!confirmed) return;
+
+          try {
+            for (const t of tables) {
+              await tursoExecute(`DELETE FROM ${quoteIdent(t.name)}`);
+            }
+            showToast('All records deleted.', 'success');
+            state.recentOps.unshift({ type: 'success', message: 'Deleted all records from all tables', time: new Date().toISOString() });
+            await renderOverview();
+          } catch (e) {
+            showToast('Delete all failed: ' + e.message, 'error');
+          }
+        },
+
+        async dropAllTables() {
+          const tables = await fetchTables();
+          const confirmed = await confirmDialog(
+            'Drop all tables',
+            `This will permanently <strong>DROP</strong> all <strong>${tables.length}</strong> user table(s):<br><br><strong>${tables.map(t => esc(t.name)).join(', ')}</strong><br><br><span class="text-danger">All data and schemas will be lost. This cannot be undone.</span>`,
+            'Drop all tables',
+            'DROP'
+          );
+          if (!confirmed) return;
+
+          try {
+            for (const t of tables) {
+              await tursoExecute(`DROP TABLE IF EXISTS ${quoteIdent(t.name)}`);
+            }
+            showToast('All tables dropped.', 'success');
+            state.tables = [];
+            state.currentTable = null;
+            state.recentOps.unshift({ type: 'success', message: 'Dropped all user tables', time: new Date().toISOString() });
+            renderSidebar();
+            await renderOverview();
+          } catch (e) {
+            showToast('Drop all failed: ' + e.message, 'error');
+          }
+        },
+
+        // --- SQL Console ---
+        async runSQL() {
+          const sql = $('#sql-input').value.trim();
+          if (!sql) { showToast('Please enter a SQL query.', 'error'); return; }
+
+          const destructive = /^\s*(DROP|DELETE|TRUNCATE|ALTER|UPDATE\s+\w+\s+SET)/i.test(sql) && !/WHERE/i.test(sql);
+          if (destructive) {
+            const confirmed = await confirmDialog(
+              'Destructive SQL',
+              `The query appears to be destructive (it may modify or delete data without a WHERE clause).<br><br><code style="font-size:0.75rem;">${esc(sql.slice(0, 200))}${sql.length > 200 ? '…' : ''}</code><br><br>Do you want to continue?`,
+              'Execute anyway'
+            );
+            if (!confirmed) return;
+          }
+
+          const btn = $('#run-sql-btn');
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner"></span> Running…';
+          state._lastSql = sql;
+
+          const resultDiv = $('#sql-result');
+          resultDiv.innerHTML = '<div class="loading-overlay"><span class="spinner"></span> Executing…</div>';
+
+          try {
+            const start = performance.now();
+            const statements = sql.split(';').map(s => s.trim()).filter(Boolean);
+            if (statements.length === 0) throw new Error('No statements to execute.');
+
+            let lastResult = null;
+            for (const stmt of statements) {
+              lastResult = await tursoQuery(stmt);
+            }
+            const elapsed = Math.round(performance.now() - start);
+
+            state.sqlHistory.unshift({ sql, status: 'ok', time: new Date().toISOString(), elapsed });
+
+            if (lastResult && lastResult.cols && lastResult.cols.length > 0) {
+              let html = `<div class="card"><div class="card-header"><span class="card-title">Result</span><span class="badge badge-success">${esc(lastResult.rows.length)} rows · ${elapsed}ms</span></div>`;
+              html += `<div class="data-table-wrapper"><table class="data-table"><thead><tr>`;
+              for (const c of lastResult.cols) {
+                html += `<th>${esc(c.name)} <span class="text-xs text-muted">${esc(c.decltype || '')}</span></th>`;
+              }
+              html += `</tr></thead><tbody>`;
+              for (const row of lastResult.rows) {
+                html += `<tr>`;
+                for (const cell of row) {
+                  const val = convertValue(cell);
+                  const disp = displayValue(val);
+                  html += `<td class="${disp.cls}">${esc(disp.text)}</td>`;
+                }
+                html += `</tr>`;
+              }
+              html += `</tbody></table></div></div>`;
+              resultDiv.innerHTML = html;
+            } else if (lastResult && lastResult.affected_row_count !== undefined) {
+              resultDiv.innerHTML = `<div class="card"><div class="card-header"><span class="card-title">Query OK</span><span class="badge badge-success">${elapsed}ms</span></div><p class="text-sm">Affected rows: <strong>${lastResult.affected_row_count}</strong>${lastResult.last_insert_rowid ? ` · Last insert rowid: <strong>${lastResult.last_insert_rowid}</strong>` : ''}</p></div>`;
+            } else {
+              resultDiv.innerHTML = `<div class="card"><div class="card-header"><span class="card-title">Query OK</span><span class="badge badge-success">${elapsed}ms</span></div><p class="text-sm">Statement executed successfully.</p></div>`;
+            }
+
+            showToast('Query executed successfully.', 'success');
+            state.tables = await fetchTables();
+            renderSidebar();
+
+          } catch (e) {
+            state.sqlHistory.unshift({ sql, status: 'error', time: new Date().toISOString() });
+            resultDiv.innerHTML = `<div class="card" style="border-color:var(--danger);"><div class="card-header"><span class="card-title text-danger">Error</span></div><pre class="text-sm text-danger" style="white-space:pre-wrap;font-family:var(--mono);">${esc(e.message)}</pre></div>`;
+            showToast('SQL error: ' + e.message, 'error', 6000);
+          } finally {
+            btn.disabled = false;
+            btn.innerHTML = '▶ Execute';
+          }
+        },
+
+        copyQuery() {
+          const sql = $('#sql-input').value;
+          navigator.clipboard.writeText(sql).then(() => showToast('Query copied.', 'success')).catch(() => showToast('Copy failed.', 'error'));
+        },
+
+        formatSQL() {
+          const inp = $('#sql-input');
+          let sql = inp.value;
+          sql = sql.replace(/\b(SELECT|FROM|WHERE|AND|OR|ORDER BY|GROUP BY|LIMIT|OFFSET|INSERT INTO|VALUES|UPDATE|SET|DELETE FROM|CREATE TABLE|DROP TABLE|ALTER TABLE|JOIN|LEFT JOIN|INNER JOIN|ON)\b/gi, m => '\n' + m.toUpperCase());
+          inp.value = sql.trim();
+        },
+
+        clearConsole() {
+          $('#sql-input').value = '';
+          $('#sql-result').innerHTML = '';
+          state._lastSql = '';
+        },
+
+        loadHistoryQuery(index) {
+          const h = state.sqlHistory[index];
+          if (h) {
+            $('#sql-input').value = h.sql;
+            state._lastSql = h.sql;
+          }
+        },
+
+        // --- CSV/JSON export ---
+        async exportSelectedCSV() {
+          const tableName = $('#export-table')?.value || state.currentTable;
+          if (!tableName) { showToast('No table selected.', 'error'); return; }
+          try {
+            const info = await fetchTableInfo(tableName);
+            const result = await tursoQuery(`SELECT * FROM ${quoteIdent(tableName)}`);
+            const cols = result.cols || [];
+            const rows = result.rows || [];
+            const header = cols.map(c => c.name).join(',');
+            const lines = rows.map(row => row.map(cell => {
+              const val = convertValue(cell);
+              if (val === null) return '';
+              let s = typeof val === 'object' && val.__blob ? val.base64 : String(val);
+              if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                s = '"' + s.replace(/"/g, '""') + '"';
+              }
+              return s;
+            }).join(','));
+            const csv = [header, ...lines].join('\n');
+            downloadFile(csv, `${tableName}-${Date.now()}.csv`, 'text/csv');
+            showToast('CSV exported.', 'success');
+          } catch (e) {
+            showToast('CSV export failed: ' + e.message, 'error');
+          }
+        },
+
+        async exportSelectedJSON() {
+          const tableName = $('#export-table')?.value || state.currentTable;
+          if (!tableName) { showToast('No table selected.', 'error'); return; }
+          try {
+            const info = await fetchTableInfo(tableName);
+            const result = await tursoQuery(`SELECT * FROM ${quoteIdent(tableName)}`);
+            const rows = (result.rows || []).map(row => row.map(v => v));
+            const obj = {
+              format: 'turso-table',
+              table: tableName,
+              columns: info,
+              rows,
+            };
+            downloadFile(JSON.stringify(obj, null, 2), `${tableName}-${Date.now()}.json`, 'application/json');
+            showToast('JSON exported.', 'success');
+          } catch (e) {
+            showToast('JSON export failed: ' + e.message, 'error');
+          }
+        },
+
+        async exportSelectedSchema() {
+          const tableName = $('#export-table')?.value || state.currentTable;
+          if (!tableName) { showToast('No table selected.', 'error'); return; }
+          const t = state.tables.find(x => x.name === tableName);
+          if (!t || !t.schema) { showToast('Schema not available.', 'error'); return; }
+          downloadFile(t.schema + ';', `${tableName}-schema.sql`, 'application/sql');
+          showToast('Schema exported.', 'success');
+        },
+
+        exportTableCSV() {
+          if (!state.currentTable) { showToast('No table selected.', 'error'); return; }
+          App.exportSelectedCSVWithTable(state.currentTable);
+        },
+
+        async exportSelectedCSVWithTable(tableName) {
+          try {
+            const result = await tursoQuery(`SELECT * FROM ${quoteIdent(tableName)}`);
+            const cols = result.cols || [];
+            const rows = result.rows || [];
+            const header = cols.map(c => c.name).join(',');
+            const lines = rows.map(row => row.map(cell => {
+              const val = convertValue(cell);
+              if (val === null) return '';
+              let s = typeof val === 'object' && val.__blob ? val.base64 : String(val);
+              if (s.includes(',') || s.includes('"') || s.includes('\n')) s = '"' + s.replace(/"/g, '""') + '"';
+              return s;
+            }).join(','));
+            downloadFile([header, ...lines].join('\n'), `${tableName}-${Date.now()}.csv`, 'text/csv');
+            showToast('CSV exported.', 'success');
+          } catch (e) { showToast(e.message, 'error'); }
+        },
+
+        exportTableJSON() {
+          if (!state.currentTable) { showToast('No table selected.', 'error'); return; }
+          App.exportSelectedJSONWithTable(state.currentTable);
+        },
+
+        async exportSelectedJSONWithTable(tableName) {
+          try {
+            const info = await fetchTableInfo(tableName);
+            const result = await tursoQuery(`SELECT * FROM ${quoteIdent(tableName)}`);
+            const obj = { format: 'turso-table', table: tableName, columns: info, rows: result.rows || [] };
+            downloadFile(JSON.stringify(obj, null, 2), `${tableName}-${Date.now()}.json`, 'application/json');
+            showToast('JSON exported.', 'success');
+          } catch (e) { showToast(e.message, 'error'); }
+        },
+
+        // --- CSV Import ---
+        async importCSV() {
+          const tableName = $('#import-table')?.value;
+          const fileInput = $('#csv-file');
+          const file = fileInput?.files[0];
+          if (!tableName) { showToast('Select a target table.', 'error'); return; }
+          if (!file) { showToast('Select a CSV file.', 'error'); return; }
+
+          try {
+            const text = await file.text();
+            const lines = parseCSV(text);
+            if (lines.length < 2) { showToast('CSV must have a header and at least one data row.', 'error'); return; }
+
+            const header = lines[0];
+            const info = await fetchTableInfo(tableName);
+            const validCols = info.map(c => c.name);
+            const colIndexes = header.map(h => validCols.indexOf(h.trim()));
+            if (colIndexes.some(i => i === -1)) {
+              const missing = header.filter((h, i) => colIndexes[i] === -1);
+              showToast('Unknown columns: ' + missing.join(', '), 'error');
+              return;
+            }
+
+            const rows = lines.slice(1).filter(r => r.length > 0);
+            const placeholders = colIndexes.map(() => '?').join(', ');
+            const insertSql = `INSERT INTO ${quoteIdent(tableName)} (${colIndexes.map(i => quoteIdent(validCols[i])).join(', ')}) VALUES (${placeholders})`;
+
+            const chunkSize = 50;
+            for (let i = 0; i < rows.length; i += chunkSize) {
+              const chunk = rows.slice(i, i + chunkSize);
+              const statements = chunk.map(row => ({
+                sql: insertSql,
+                args: colIndexes.map(idx => {
+                  const val = row[idx] ?? '';
+                  if (val === '' || val === 'NULL') return { type: 'null' };
+                  if (!isNaN(val) && val.trim() !== '' && !/^0\d/.test(val)) return { type: 'integer', value: String(parseInt(val, 10)) };
+                  return { type: 'text', value: val };
+                }),
+              }));
+              await tursoBatch(statements);
+            }
+
+            showToast(`Imported ${rows.length} row(s).`, 'success');
+            state.recentOps.unshift({ type: 'success', message: `Imported ${rows.length} rows into ${tableName}`, time: new Date().toISOString() });
+            await App.refreshTableDataOnly();
+          } catch (e) {
+            showToast('CSV import failed: ' + e.message, 'error');
+          }
+        },
+
+        // --- UI Helpers ---
+        closeModal,
+        handleModalBackdrop,
+      };
+
+      // ========== UTILS ==========
+      function downloadFile(content, filename, mime) {
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      function parseCSV(text) {
+        const rows = [];
+        let cur = '';
+        let row = [];
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i];
+          if (inQuotes) {
+            if (ch === '"') {
+              if (text[i + 1] === '"') { cur += '"'; i++; }
+              else inQuotes = false;
+            } else {
+              cur += ch;
+            }
+          } else {
+            if (ch === '"') inQuotes = true;
+            else if (ch === ',') { row.push(cur); cur = ''; }
+            else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+            else if (ch === '\r') { /* skip */ }
+            else cur += ch;
+          }
+        }
+        if (cur !== '' || row.length > 0) { row.push(cur); rows.push(row); }
+        return rows;
+      }
+
+      // ========== EXPOSE ==========
+      window.App = App;
+
+      // ========== INIT ==========
+      function init() {
+        try {
+          const stored = localStorage.getItem('turso_credentials');
+          if (stored) {
+            const { url, token } = JSON.parse(stored);
+            if (url) $('#conn-url').value = url;
+            if (token) {
+              $('#conn-token').value = token;
+              $('#remember-creds').checked = true;
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        $('#conn-token').addEventListener('keydown', (e) => { if (e.key === 'Enter') App.connect(); });
+        $('#conn-url').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#conn-token').focus(); });
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+
+    })();
+  </script>
+</body>
+</html>
